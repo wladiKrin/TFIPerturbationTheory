@@ -1,0 +1,3 @@
+scripts for calculating the spectra and time evolution for the TFI in 2D using Brioullin Wigner perturbation theory
+
+attempts at using the GPU (not enough memory-issues)
