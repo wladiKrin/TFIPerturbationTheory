@@ -1,5 +1,5 @@
-using Pkg; Pkg.activate("..")
-using Statistics, Combinatorics
+using Pkg; Pkg.activate("/local/krinitsin/TFIPerturbationTheory/")
+using Statistics
 using SparseArrays
 using LinearAlgebra
 using KrylovKit

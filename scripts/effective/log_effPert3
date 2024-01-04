@@ -1,0 +1,12 @@
+pgi8cluster11: Using Ethernet for MPI communication.
+pgi8cluster11: Using Ethernet for MPI communication.
+The latest version of Julia in the `release` channel is 1.10.0+0.x64.linux.gnu. You currently have `1.9.3+0.x64.linux.gnu` installed. Run:
+
+  juliaup update
+
+to install Julia 1.10.0+0.x64.linux.gnu and update the `release` channel to that version.
+  Activating project at `/local/krinitsin/TFIPerturbationTheory`
+length(is) = 4386
+Starting caluclation of eigenvectors/-values
+eigen: : 34.793486 seconds (1.27 M allocations: 672.689 MiB, 0.32% gc time, 3.63% compilation time)
+done

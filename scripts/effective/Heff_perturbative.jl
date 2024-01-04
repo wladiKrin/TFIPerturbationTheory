@@ -103,8 +103,9 @@ for (t, tf) in zip(ts[1:end-1], ts[2:end])
 
     # Propagate state
     U = exp.(-1im*dt .* vals)
-    psi = U .* psi
+    global psi = U .* psi
 end
 
 df = DataFrame(t = [real(d[1]) for d in data], imb = [real(d[2]) for d in data], N = [real(d[3]) for d in data])
 CSV.write("../../data/obs_Eff_pert_order=$(maxOrder)_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df)
+println("done")

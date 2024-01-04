@@ -1,0 +1,12 @@
+pgi8cluster31: Using Ethernet for MPI communication.
+pgi8cluster31: Using Ethernet for MPI communication.
+The latest version of Julia in the `release` channel is 1.10.0+0.x64.linux.gnu. You currently have `1.9.3+0.x64.linux.gnu` installed. Run:
+
+  juliaup update
+
+to install Julia 1.10.0+0.x64.linux.gnu and update the `release` channel to that version.
+  Activating project at `/local/krinitsin/TFIPerturbationTheory`
+length(is) = 61622
+Starting caluclation of eigenvectors/-values
+slurmstepd: error: *** STEP 13586.0 ON pgi8cluster31 CANCELLED AT 2024-01-04T11:09:28 ***
+slurmstepd: error: *** JOB 13586 ON pgi8cluster31 CANCELLED AT 2024-01-04T11:09:28 ***

@@ -41,7 +41,7 @@ iss = map(dwMax) do dwSet
     return [i for (i,dw) in enumerate(dw_precalc) if dw == dwSet]
 end
 
-is = vcat(iss[1:isMax+4])
+is = vcat(iss[isMax:6]...)
 @show length(is)
 
 dw_precalc  = [dw_precalc[i] for i in is]
@@ -82,7 +82,7 @@ dw = map(1:size(vecs)[2]) do i
 end
 
 dfSpec = DataFrame(en = real.(vals), dw = dw, occ = real.(vecs[init_idx,:]))
-CSV.write("../../data/spec_Eff_sectors_0_$(dwMax[isMax+4])_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", dfSpec)
+CSV.write("../../data/spec_Eff_sectors_$(dwMax[isMax])_12_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", dfSpec)
 
 psi = Transpose(vecs) * psi
 
@@ -105,8 +105,9 @@ for (t, tf) in zip(ts[1:end-1], ts[2:end])
 
     # Propagate state
     U = exp.(-1im*dt .* vals)
-    psi = U .* psi
+    global psi = U .* psi
 end
 
 df = DataFrame(t = [real(d[1]) for d in data], imb = [real(d[2]) for d in data], N = [real(d[3]) for d in data])
-CSV.write("../../data/obs_Eff_sectors_0_$(dwMax[isMax+4])_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df)
+CSV.write("../../data/obs_Eff_sectors_$(dwMax[isMax])_12_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df)
+println("done")

@@ -3,7 +3,7 @@ include("../../src/PertTheory.jl");
 L= (4,4)
 N = prod(L);
 J = - 1;
-g = - 0.2
+g = - 0.4
 h = - 0.
 
 cutoffOrder = parse(Int, ARGS[1])
@@ -35,9 +35,9 @@ while true
     ts[end] > tmax && break
 end
 
-c = 10^(-cutoffOrder-2)
+c = 10.0^(-cutoffOrder-2)
 is = []
-h5open("../data/vecs_weights_g=$(g).h5", "r") do file
+h5open("../../data/vecs_weights_g=$(g).h5", "r") do file
     weights = read(file["weights"])
     occ     = read(file["occs"])
     dw      = read(file["dws"])
@@ -110,7 +110,7 @@ for (t, tf) in zip(ts[1:end-1], ts[2:end])
 
     # Propagate state
     U = exp.(-1im*dt .* vals)
-    psi = U .* psi
+    global psi = U .* psi
 end
 
 df = DataFrame(t = [real(d[1]) for d in data], imb = [real(d[2]) for d in data], N = [real(d[3]) for d in data])
