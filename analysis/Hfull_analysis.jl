@@ -1,63 +1,89 @@
-include("../src/SW.jl")
+include("../src/PertTheory.jl")
 using Statistics
 #using Plots
 
-gs = [-0.1,-0.2,-0.3,-0.4,-0.5] #,-1.25,-1.5,-1.75,-2.0,-2.25,-2.5]
-lims = [1e-8, 1e-6,1e-5, 1e-5,1e-4,1e-3]
+gs = [-0.1,-0.2,-0.3,-0.4,-0.5,-0.7,-0.75,-0.8,-0.85,-0.9,-0.95,-1.0,-2.0]
+gs = [-0.1,-0.2,-0.3,-0.4,-0.5,-0.6,-0.7,-0.75,-0.8,-0.85,-0.9,-0.95,-1.0,-1.25,-1.5,-1.75,-2.0]
 
+## domain wall length operator;;; not very efficient just use H0 for that
+function domainWallL(spins::Tuple{Vararg{Int64}}, L, neigh)
+    spins = reshape([s for s in spins], L)
+
+    D = 0
+    for (i,j) in neigh
+        pos1 = _coordinate_simple_lattice(i, L)
+        pos2 = _coordinate_simple_lattice(j, L)
+        s1 = spins[pos1[1],pos1[2]] == 1 ? 1 : -1
+        s2 = spins[pos2[1],pos2[2]] == 1 ? 1 : -1
+        D += (1-s1*s2)/2
+    end
+    return trunc(Int,D)
+end;
+
+## imbalance
+function corrF(spins::Tuple{Vararg{Int64}}, L)
+    spins = reshape([s for s in spins], L)
+
+    left = mapreduce(+, Iterators.product(1:L[1], 1:floor(Int, L[2]/2))) do (i,j)
+        spin = (spins[i,j] == 1) ? 1 : -1
+        return spin
+    end/(prod(L)/2)
+    right = mapreduce(+, Iterators.product(1:L[1], floor(Int, L[2]/2)+1:L[2])) do (i,j)
+        spin = (spins[i,j] == 1) ? 1 : -1
+        return spin
+    end/(prod(L)/2)
+    return left*right
+end
+
+L= (4,4)
+N = prod(L);
+J = -1;
+h = -0.
+# g = -0.1
+
+next_neighbours = nearest_neighbours(L, collect(1:prod(L)), periodic_y=false)
+
+spin_basis = vec(collect(Iterators.product(fill([1,0],N)...)));
+dw_precalc = map(spin_basis) do spin
+    return domainWallL(spin, L, next_neighbours)
+end
+
+### sort basis according to domain wall length ###
+sorted_spin_basis = sort(collect(zip(dw_precalc, spin_basis)), by = x->x[1])
+dw_precalc  = [d[1] for d in sorted_spin_basis]
+spin_basis  = [d[2] for d in sorted_spin_basis]
+
+# imb_precalc = map(s -> imbalance(s, L), spin_basis)
+corr_precalc = map(s -> corrF(s, L), spin_basis)
+
+spin_basis_table = Dict(
+    map(enumerate(zip(spin_basis,dw_precalc))) do (i, (spin, dw))
+        return (spin, (i,dw))
+    end
+);
+
+### initial state ###
+init_spin = vcat(fill(1,Int(N/2)),fill(0,Int(N/2)))
+init_idx = first(spin_basis_table[Tuple(init_spin)]);
 
 for g in gs
-    L= (4,4)
-    N = prod(L);
-    J = -1;
-    h = -0.
-    # g = -0.1
-
-    next_neighbours = nearest_neighbours(L, collect(1:prod(L)))
-
-    spin_basis = vec(collect(Iterators.product(fill([1,0],N)...)));
-    dw_precalc = map(spin_basis) do spin
-        return domainWallL(spin, L)
-    end
-
-    ### sort basis according to domain wall length ###
-    sorted_spin_basis = sort(collect(zip(dw_precalc, spin_basis)), by = x->x[1])
-    dw_precalc  = [d[1] for d in sorted_spin_basis]
-    spin_basis  = [d[2] for d in sorted_spin_basis]
-
-    imb_precalc = map(s -> imbalance(s, L), spin_basis)
-
-    spin_basis_table = Dict(
-        map(enumerate(zip(spin_basis,dw_precalc))) do (i, (spin, dw))
-            return (spin, (i,dw))
-        end
-    );
-
-    domainWall_table = Dict(
-        map(enumerate(dw_precalc)) do (i,  dw)
-            return (i, dw)
-        end
-    );
-
-    ### initial state ###
-    init_spin = vcat(fill(1,Int(N/2)),fill(0,Int(N/2)))
-    init_idx = first(spin_basis_table[Tuple(init_spin)]);
-
-    ts = [0.0,0.1]
-    step = 1.1
-    tmax = 1e20
-
-    ### logarithmic timesteps ###
-    while true
-      push!(ts, ts[end]*step)
-      ts[end] > tmax && break
-    end
 
     @show g
 
-    vals, vecs, dw = readSpec("../data/spec_ED_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h)")
+    vals, vecs, dw = readSpec("../data/spec_ED_Bound_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h)")
 
-    isSort = sort(enumerate(zip(abs2.(vecs[476,:]),dw)), by=x->x[2], rev=true)
+    #= 
+    corr = map(1:2^16) do i
+        v = vecs[:,i]
+        return sum(abs2.(vecs[:,i]) .* corr_precalc)
+    end
+
+    df = DataFrame(vals = vals, dw = dw, occ = vecs[init_idx,:], corr = corr)
+    CSV.write("../data/occSpecB_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df)
+end
+    =#
+
+    isSort = sort(collect(enumerate(zip(abs2.(vecs[init_idx,:]),dw))), by=x->x[2], rev=true)
 
     is = []
     occs = []
@@ -75,27 +101,24 @@ for g in gs
 
     @show length(is)
 
-    l8 = length(filter(x->x[3]<=9, is))
-    l10 = length(filter(x->x[3]<=11, is))
-    @show l8, l10
-
     iss   = [i[1] for i in is]
     occss = [i[2] for i in is]
     dws   = [i[3] for i in is]
     valss   = [vals[i] for i in iss]
-    #=
 
-    #vecsWeights = [abs.(vecs[:,i]) for i in iss]
+    vecsWeights = [vecs[:,i] for i in iss]
 
-    #vecsWeights = permutedims(hcat(vecsWeights...))
+    vecsWeights = permutedims(hcat(vecsWeights...))
 
-    h5open("../data/vecs_vals_red_g=$(g).h5", "w") do file    
+    h5open("../data/vecs_vals_Bound_g=$(g).h5", "w") do file    
         file["is"] = iss
         file["vals"] = valss
-        file["dws"] = dws
-        file["occs"] = occss
+        file["dw"] = dws
+        file["occ"] = occss
+        file["weight"] = vecsWeights
     end
-    =#
+end
+#=
     
     hmData = map(Iterators.product(iss,iss)) do (i,j)
         return mapreduce(+, enumerate(zip(vecs[:,i],vecs[:,j]))) do (num,(v1,v2))
@@ -103,7 +126,6 @@ for g in gs
         end
     end
 
-    #=
     heatmap(title = "number of eigenstates = $(length(is))", hmData)
 
     hline!([l8], c = :red, label = "")
@@ -113,7 +135,6 @@ for g in gs
     vline!([l10], c = :blue, label = "")
 
     savefig("../figures/imbHeatmap_timescale_g=$(g).png")
-    =#
 
     hmDataFact = map(Iterators.product(iss,iss)) do (i,j)
         fact = conj(vecs[init_idx,i])*vecs[init_idx,j]
@@ -126,7 +147,6 @@ for g in gs
         return vals[j]-vals[i]
     end
 
-    #=
     heatmap(title = "number of eigenstates = $(length(is))", hmDataFact)
 
     hline!([l8], c = :red, label = "")
@@ -135,7 +155,6 @@ for g in gs
     hline!([l10], c = :blue, label = "")
     vline!([l10], c = :blue, label = "")
     savefig("../figures/imbHeatmap_factor_g=$(g).png")
-    =#
 
     h5open("../data/imbalanceData_hm_g=$(g).h5", "w") do file    
         file["imb"] =   hmData
@@ -143,7 +162,6 @@ for g in gs
         file["enDiff"] = enDiff
     end
 
-    continue
 
     obs8 = []
     obs810 = []
@@ -181,7 +199,6 @@ for g in gs
         end
     end
 
-    #=
     scatter(xtitle = "number of eigenstates = $(length(is)), norm = $(occ)", label="imbalance matrix element", ylabel="energy difference",
         dpi = 300,
     )
@@ -209,9 +226,7 @@ for g in gs
     N = sparse(diagm(fill(16, 2^16)) + H0 ./ 2)
     xCorrM  = build_twoCorrel(spin_basis, spin_basis_table)
     xPolM       = build_xPol(spin_basis, spin_basis_table)
-    =#
 
-    #=
     is = [195,196,197,198,199,200,201,202]
     is2 = collect(99:522)
     @show mean(map(i->dw[i], is))
@@ -229,8 +244,6 @@ for g in gs
     dw2 = sum(map(x->dw[x] * abs2(vecs[476,x]), is2))
     @show dw1/occSum
     @show dw2/occSum
-    continue
-    =#
 
 
     is   = [i for (i,dw) in enumerate(dw) if dw > 7 && dw<9]
@@ -240,7 +253,6 @@ for g in gs
 
     ### only dw=8 states ###
 
-    #=
     println("1")
     obs1 = map(Iterators.product(is,is)) do (i,j)
         imb = conj(vecs[init_idx,i])*vecs[init_idx,j]*mapreduce(+, enumerate(zip(vecs[:,i],vecs[:,j]))) do (num,(v1,v2))
@@ -268,7 +280,6 @@ for g in gs
 
     df1 = DataFrame(t = [d[1] for d in data1], imb = [d[2] for d in data1], dw = [d[3] for d in data1], xPol = [d[4] for d in data1], xCorr = [d[5] for d in data1])
     CSV.write("../data/timeEv_dw8states_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df1)
-    =#
 
     ### 8 & 10 states ###
     println("8 and 10")
@@ -313,7 +324,7 @@ for g in gs
 
     occ = abs2.(vecs[476,:])
     #occRed = [(i,round(o,digits=4)) for (i,o) in enumerate(occ) if o > 1e-3]
-    occRed = enumerate(occ)
+    occRed = collect(enumerate(occ))
 
     #println(sort(occRed, by=x->x[2], rev=true))
     #println(map(x->occ[x], is))
@@ -349,3 +360,4 @@ for g in gs
     plot(vcat(occs, hms)..., layout=(2,7), size = (4000,600))
     savefig("eiv_decomposition_IS_g=$(g).png")
 end
+=#

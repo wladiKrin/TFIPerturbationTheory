@@ -104,19 +104,18 @@ function sgn(x)
 end
 
 function find_inds(nInit, order::Int, V1)
-    is = nInit
-    curr_inds = nInit
+    is = copy(nInit)
+    curr_inds = copy(nInit)
 
     for o in 1:order
         next_inds = []
         for i in curr_inds
-            inds, vals = findnz(V1[i,:])
-            push!(next_inds, inds)
+            push!(next_inds, findnz(V1[i,:])[1])
         end
 
         curr_inds = filter(x->!(x ∈ is), rmDoubles(vcat(next_inds...)))
         append!(is, curr_inds)
     end
 
-    return rmDoubles(vcat(is...))
+    return sort(rmDoubles(vcat(is...)))
 end

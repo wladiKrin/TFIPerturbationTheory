@@ -5,6 +5,6 @@
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=48
-#SBATCH --array=7-8
+#SBATCH --array=1-4
 
 srun julia -t 48 Heff_perturbative.jl ${SLURM_ARRAY_TASK_ID}

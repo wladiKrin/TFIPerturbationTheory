@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=effSectors
-#SBATCH --output=log_effSectors%a
-#SBATCH --error=log_effSectors%a
+#SBATCH --job-name=effSectors1
+#SBATCH --output=log_effSectors1%a
+#SBATCH --error=log_effSectors1%a
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=48

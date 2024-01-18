@@ -3,7 +3,7 @@ include("../../src/PertTheory.jl");
 L= (4,4)
 N = prod(L);
 J = - 1;
-g = - 0.2
+g = - 1.0
 h = - 0.
 
 isMax = parse(Int, ARGS[1])
@@ -20,7 +20,6 @@ spin_basis_tableFull = Dict(
         return (spin, (i,dw))
     end
 );
-
 
 ### sort basis according to domain wall length ###
 sorted_spin_basis = sort(collect(zip(dw_precalc, spin_basis)), by = x->x[1])
@@ -41,7 +40,7 @@ iss = map(dwMax) do dwSet
     return [i for (i,dw) in enumerate(dw_precalc) if dw == dwSet]
 end
 
-is = vcat(iss[isMax:6]...)
+is = vcat(iss[1:isMax+4]...)
 @show length(is)
 
 dw_precalc  = [dw_precalc[i] for i in is]
@@ -82,7 +81,7 @@ dw = map(1:size(vecs)[2]) do i
 end
 
 dfSpec = DataFrame(en = real.(vals), dw = dw, occ = real.(vecs[init_idx,:]))
-CSV.write("../../data/spec_Eff_sectors_$(dwMax[isMax])_12_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", dfSpec)
+CSV.write("../../data/spec_Eff_sectors_0_$(dwMax[isMax+4])_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", dfSpec)
 
 psi = Transpose(vecs) * psi
 
@@ -109,5 +108,5 @@ for (t, tf) in zip(ts[1:end-1], ts[2:end])
 end
 
 df = DataFrame(t = [real(d[1]) for d in data], imb = [real(d[2]) for d in data], N = [real(d[3]) for d in data])
-CSV.write("../../data/obs_Eff_sectors_$(dwMax[isMax])_12_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df)
+CSV.write("../../data/obs_Eff_sectors_0_$(dwMax[isMax+4])_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df)
 println("done")

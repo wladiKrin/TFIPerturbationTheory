@@ -1,7 +1,22 @@
 include("../../src/PertTheory.jl")
 
-#gs = [-0.1,-0.2,-0.3,-0.4,-0.5,-0.7,-1.0,-2.0]
-gs = [-0.75,-0.8,-0.85,-0.9,-0.95]
+gs = [-0.1,-0.2,-0.3,-0.4,-0.5,-0.6,-0.7,-0.75,-0.8,-0.85,-0.9,-0.95,-1.0,-1.25,-1.5,-1.75,-2.0]
+# gs = [-0.75,-0.8,-0.85,-0.9,-0.95]
+
+## domain wall length operator;;; not very efficient just use H0 for that
+function domainWallL(spins::Tuple{Vararg{Int64}}, L, neigh)
+    spins = reshape([s for s in spins], L)
+
+    D = 0
+    for (i,j) in neigh
+        pos1 = _coordinate_simple_lattice(i, L)
+        pos2 = _coordinate_simple_lattice(j, L)
+        s1 = spins[pos1[1],pos1[2]] == 1 ? 1 : -1
+        s2 = spins[pos2[1],pos2[2]] == 1 ? 1 : -1
+        D += (1-s1*s2)/2
+    end
+    return trunc(Int,D)
+end;
 
 # for g in gs
 let
@@ -13,11 +28,11 @@ let
   array_id = parse(Int, ARGS[1])
   g = gs[array_id]
 
-  next_neighbours = nearest_neighbours(L, collect(1:prod(L)))
+  next_neighbours = nearest_neighbours(L, collect(1:prod(L)), periodic_y=false)
 
   spin_basis = vec(collect(Iterators.product(fill([1,0],N)...)));
   dw_precalc = map(spin_basis) do spin
-      return domainWallL(spin, L)
+      return domainWallL(spin, L, next_neighbours)
   end
 
   ### sort basis according to domain wall length ###
@@ -60,5 +75,5 @@ let
       return sum(absVals .* dw_precalc)
   end
 
-  saveSpec("../../data/spec_ED_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h)", vals, vecs, dw);
+  saveSpec("../../data/spec_ED_Bound_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h)", vals, vecs, dw);
 end

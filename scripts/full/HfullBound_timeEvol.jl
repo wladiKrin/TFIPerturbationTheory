@@ -1,6 +1,6 @@
 include("../../src/PertTheory.jl")
 
-gs = [-0.1,-0.2,-0.3,-0.4,-0.5,-0.7,-0.75,-0.8,-0.85,-0.9,-0.95,-1.0,-1.25,-1.5,-1.75,-2.0]
+gs = [-0.1,-0.2,-0.3,-0.4,-0.5,-0.6,-0.7,-0.75,-0.8,-0.85,-0.9,-0.95,-1.0,-1.25,-1.5,-1.75,-2.0]
 # gs = [-0.1,-0.2,-0.3,-0.4,-0.5,-0.7,-0.75,-0.8,-0.85,-0.9,-0.95,-1.0,-2.0]
 
 ## domain wall length operator;;; not very efficient just use H0 for that
@@ -99,7 +99,7 @@ let
   #H0_corr     = build_corr(H0, vecS)
   #D0_corr     = build_corr(D0, vecS)
 
-  vals,vecs,dw = readSpec("../../data/spec_ED_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h)")
+  vals,vecs,dw = readSpec("../../data/spec_ED_Bound_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h)")
 
   ### map initial state onto eigenbasis of H ###
   psi = Transpose(vecs) * psi
@@ -143,5 +143,5 @@ let
     twoCorrel = [real(d[5]) for d in data],
     corr = [real(d[6]) for d in data],
   )
-  CSV.write("../../data/obs_ED_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df)
+  CSV.write("../../data/obs_ED_Bound_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df)
 end

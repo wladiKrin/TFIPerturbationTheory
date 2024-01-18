@@ -15,17 +15,17 @@ dw_precalc = map(spin_basis) do spin
     return domainWallL(spin, L)
 end
 
+### sort basis according to domain wall length ###
+sorted_spin_basis = sort(collect(zip(dw_precalc, spin_basis)), by = x->x[1])
+dw_precalc  = [d[1] for d in sorted_spin_basis]
+spin_basis  = [d[2] for d in sorted_spin_basis];
+
 spin_basis_tableFull = Dict(
     map(enumerate(zip(spin_basis,dw_precalc))) do (i, (spin, dw))
         return (spin, (i,dw))
     end
 );
 
-
-### sort basis according to domain wall length ###
-sorted_spin_basis = sort(collect(zip(dw_precalc, spin_basis)), by = x->x[1])
-dw_precalc  = [d[1] for d in sorted_spin_basis]
-spin_basis  = [d[2] for d in sorted_spin_basis];
 ts = [0.0,0.1]
 step = 1.1
 tmax = 1e10
@@ -39,7 +39,15 @@ end
 init_states_indices = [145,205,251,285,336,370,416,476]
 HInds, RInds = build_H1_R1(spin_basis, spin_basis_tableFull, (L,J,g,h));
 VInds = HInds+RInds;
-is = find_inds(init_states_indices, maxOrder, VInds)
+
+is0 = [i for (i,dw) in enumerate(dw_precalc) if dw == 0]
+is4 = [i for (i,dw) in enumerate(dw_precalc) if dw == 4]
+is6 = [i for (i,dw) in enumerate(dw_precalc) if dw == 6]
+is8 = [i for (i,dw) in enumerate(dw_precalc) if dw == 8]
+
+is = find_inds(is8, maxOrder, VInds)
+dwMax = vcat(0, collect(4:2:28), 32)
+# is = vcat(is, is6, is4)
 @show length(is)
 
 dw_precalc  = [dw_precalc[i] for i in is]
@@ -80,7 +88,7 @@ dw = map(1:size(vecs)[2]) do i
 end
 
 dfSpec = DataFrame(en = real.(vals), dw = dw, occ = real.(vecs[init_idx,:]))
-CSV.write("../../data/spec_Eff_pert_order=$(maxOrder)_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", dfSpec)
+CSV.write("../../data/spec_Eff_pert_order=$(maxOrder)_fromSec8_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", dfSpec)
 
 psi = Transpose(vecs) * psi
 
@@ -107,5 +115,5 @@ for (t, tf) in zip(ts[1:end-1], ts[2:end])
 end
 
 df = DataFrame(t = [real(d[1]) for d in data], imb = [real(d[2]) for d in data], N = [real(d[3]) for d in data])
-CSV.write("../../data/obs_Eff_pert_order=$(maxOrder)_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df)
+CSV.write("../../data/obs_Eff_pert_order=$(maxOrder)_fromSec8_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df)
 println("done")
