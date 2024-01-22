@@ -7,13 +7,15 @@ function build_H0(spin_basis, next_neighbours, table, param)
     values = Vector{Float64}();
     
     for spin in spin_basis
+        spinM = toSpinMatr(spin)
+        longBorder = 0.2 * (- sum(spinM[:,1]) + sum(spinM[:,end]))
         (n,D) = get(table, spin, (false,false))
         n == false && continue
         
         #xx_term
         append!(rows, [n])
         append!(columns, [n])
-        append!(values, [2*D-length(next_neighbours)])
+        append!(values, [2*D-length(next_neighbours) + longBorder])
     end
     
     return dropzeros(sparse(rows,columns,values, length(spin_basis), length(spin_basis)))

@@ -75,5 +75,5 @@ let
       return sum(absVals .* dw_precalc)
   end
 
-  saveSpec("../../data/spec_ED_Bound_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h)", vals, vecs, dw);
+  saveSpec("../../data/spec_ED_longit_0.2_Bound_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h)", vals, vecs, dw);
 end

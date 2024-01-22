@@ -42,8 +42,8 @@ let
   g = gs[array_id]
 
   ts = [0.0,0.1]
-  step = 1.1
-  tmax = 1e20
+  step = 1.01
+  tmax = 1e10
 
   ### logarithmic timesteps ###
   while true
@@ -99,7 +99,7 @@ let
   #H0_corr     = build_corr(H0, vecS)
   #D0_corr     = build_corr(D0, vecS)
 
-  vals,vecs,dw = readSpec("../../data/spec_ED_Bound_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h)")
+  vals,vecs,dw = readSpec("../../data/spec_ED_longit_0.2_Bound_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h)")
 
   ### map initial state onto eigenbasis of H ###
   psi = Transpose(vecs) * psi
@@ -143,5 +143,5 @@ let
     twoCorrel = [real(d[5]) for d in data],
     corr = [real(d[6]) for d in data],
   )
-  CSV.write("../../data/obs_ED_Bound_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df)
+  CSV.write("../../data/obs_ED_longit_0.2_Bound_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df)
 end

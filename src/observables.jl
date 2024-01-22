@@ -18,10 +18,9 @@ function imbalance(spins::Tuple{Vararg{Int64}}, L)
 end
 
 ## domain wall length operator;;; not very efficient just use H0 for that
-function domainWallL(spins::Tuple{Vararg{Int64}}, L)
+function domainWallL(spins::Tuple{Vararg{Int64}}, L, neigh)
     spins = reshape([s for s in spins], L)
 
-    neigh = nearest_neighbours(L, collect(1:prod(L)))
     D = 0
     for (i,j) in neigh
         pos1 = _coordinate_simple_lattice(i, L)

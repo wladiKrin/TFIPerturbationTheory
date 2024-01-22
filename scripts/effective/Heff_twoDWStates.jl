@@ -3,10 +3,10 @@ include("../../src/PertTheory.jl");
 L= (4,4)
 N = prod(L);
 J = - 1;
-g = - 0.4
 h = - 0.
 
 gs = [-0.1,-0.2,-0.3,-0.4,-0.5,-0.7,-0.9,-1.0,-1.25,-2.]
+g = gs[parse(Int, ARGS[1])]
 
 function domainWallLTest(spins::Tuple{Vararg{Int64}}, L)
     conf = toSpinMatr(spins)
