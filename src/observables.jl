@@ -1,6 +1,6 @@
 ## matrix representation of spin configuration
-function toSpinMatr(spins::Tuple{Vararg{Int64}})
-    return reshape([s for s in spins], (4,4))
+function toSpinMatr(spins::Tuple{Vararg{Int64}}, L)
+    return reshape([s for s in spins], L)
 end
 
 ## imbalance
