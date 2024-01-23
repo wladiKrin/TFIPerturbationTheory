@@ -8,7 +8,7 @@ function build_H0(spin_basis, next_neighbours, table, param)
     
     for spin in spin_basis
         spinM = toSpinMatr(spin)
-        longBorder = 0.2 * (- sum(spinM[:,1]) + sum(spinM[:,end]))
+        longBorder = 0 #0.2 * (- sum(spinM[:,1]) + sum(spinM[:,end]))
         (n,D) = get(table, spin, (false,false))
         n == false && continue
         

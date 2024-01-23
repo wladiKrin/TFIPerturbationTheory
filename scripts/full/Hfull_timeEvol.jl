@@ -76,7 +76,8 @@ let
   );
 
   ### initial state ###
-  init_spin = vcat(fill(1,Int(N/2)),fill(0,Int(N/2)))
+  # init_spin = vcat(fill(1,Int(N/2)),fill(0,Int(N/2)))
+  init_spin = fill(1,N)
   init_idx = first(spin_basis_table[Tuple(init_spin)]);
 
   psi=zeros(length(spin_basis))
@@ -143,5 +144,5 @@ let
     twoCorrel = [real(d[5]) for d in data],
     corr = [real(d[6]) for d in data],
   )
-  CSV.write("../../data/obs_ED_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df)
+  CSV.write("../../data/obs_ED_fullPolPos_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df)
 end

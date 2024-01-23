@@ -76,7 +76,8 @@ let
   );
 
   ### initial state ###
-  init_spin = vcat(fill(1,Int(N/2)),fill(0,Int(N/2)))
+  # init_spin = vcat(fill(1,Int(N/2)),fill(0,Int(N/2)))
+  init_spin = fill(1,N)
   init_idx = first(spin_basis_table[Tuple(init_spin)]);
 
   psi=zeros(length(spin_basis))
@@ -99,7 +100,7 @@ let
   #H0_corr     = build_corr(H0, vecS)
   #D0_corr     = build_corr(D0, vecS)
 
-  vals,vecs,dw = readSpec("../../data/spec_ED_longit_0.2_Bound_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h)")
+  vals,vecs,dw = readSpec("../../data/spec_ED_Bound_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h)")
 
   ### map initial state onto eigenbasis of H ###
   psi = Transpose(vecs) * psi
@@ -143,5 +144,5 @@ let
     twoCorrel = [real(d[5]) for d in data],
     corr = [real(d[6]) for d in data],
   )
-  CSV.write("../../data/obs_ED_longit_0.2_Bound_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df)
+  CSV.write("../../data/obs_ED_Bound_fullPolPos_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df)
 end
