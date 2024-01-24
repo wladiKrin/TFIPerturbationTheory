@@ -25,7 +25,6 @@ function move_wall_left(conf::Tuple{Vararg{Vector{Int64}}}, l::Int)
         end
     end)
 end
-init_single_dw = fill(0,L[1]+1)
 
     
 function build_matrix(domain_walls, table, param)
@@ -133,12 +132,12 @@ let
     #parameters
     J = -1;
     # g = -1.;
-    g = parse(Int, ARGS[1])
+    g = gs[parse(Int, ARGS[1])]
     h = 0.;
     L= (8,8)
     N = prod(L);
 
-    n = 7
+    n = 5
     dt = 0.1
     T = 2e2
 
@@ -188,5 +187,5 @@ let
 	end
 
   df = DataFrame(t = [d[1] for d in data], imb = [d[2] for d in data]) #, pol = [d[3] for d in data])#, dw = [d[4] for d in data])
-  CSV.write("../data/obs_Eff_Bound_hardcoreBosons_n=$(n)_L=($(L[1])_$(L[2]))_g=$(g).csv", df);
+  CSV.write("../../data/obs_Eff_Bound_hardcoreBosons_n=$(n)_L=($(L[1])_$(L[2]))_g=$(g).csv", df);
 end
