@@ -28,7 +28,7 @@ end
 
     
 function build_matrix(domain_walls, table, param)
-    (L,J,g,h) = param
+    (L,J,g,_) = param
 
     rows = Vector{Int}(); 
     columns = Vector{Int}(); 
@@ -67,16 +67,11 @@ function build_matrix(domain_walls, table, param)
         domain_wall_val = 0 #h*pol(dw)
 
         for layer in 1:L[2]
-
             site1 = findall(x->x==1, dw[layer])[1]
             next_layer = layer+1 >L[2] ? 1 : layer+1
             site2 = findall(x->x==1, dw[next_layer])[1]
 
-            # if (site1 == 1 || site1 == L[1]+1)
-            #   domain_wall_val += (-(2*L[1]-1) + 2*abs(site1-site2))
-            # else
-            domain_wall_val += (-(2*L[1]-3)+2*abs(site1-site2))
-            # end
+            domain_wall_val += J*((2*L[1]-3)-2*abs(site1-site2))
         end
         append!(rows, [dw_int])
         append!(columns, [dw_int])
@@ -133,7 +128,7 @@ let
     J = -1;
     # g = -1.;
     g = gs[parse(Int, ARGS[1])]
-    h = 0.;
+    h = -0.;
     L= (8,8)
     N = prod(L);
 

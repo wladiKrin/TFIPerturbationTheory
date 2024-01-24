@@ -1,5 +1,6 @@
+using Pkg; Pkg.activate(".")
 using ITensors
-using CSV, DataFrames
+using HDF5, CSV, DataFrames
 using LinearAlgebra
 
 function ITensors.op(::OpName"Nabs", ::SiteType"Qudit", s1::Index, s2::Index)
@@ -37,13 +38,16 @@ function energy(psi, gates)
   return (meanH, varH)
 end
 
-let
-  N = 4
-  D = 5
-  cutoff = 0 #1E-14
-  tau = 0.001
-  ttotal = 2.0
-  (J,g) = (-1., 3.)
+gs = -1 .* collect(0.2:0.2:2.0)
+
+for g in gs
+  N = parse(Int, ARGS[1])
+  D = parse(Int, ARGS[2])
+  cutoff = 1E-10
+  cutoff_tebd = 1e-3
+  tau = 1e-3
+  maxIter = 1e5
+  J = -1.
 
   ## Ising model ##
   s = siteinds("Qudit", N; dim = D)
@@ -65,29 +69,35 @@ let
   psi = randomMPS(s)
   data = []
 
-  t = 0
+  i = 0
   while true
-    println("time t = ", round(t, digits = 1))
-
     ## observables
     meanN = expect(psi, "N") 
-    # absN = expect(psi, "Nabs")
     absN = inner(psi', apply(intGates, psi; cutoff=0))
     varN = expect(psi, "N2") .- meanN.^2
     meanH, varH = energy(psi, intGates)
 
-    push!(data, [t, meanN .- div(D-1,2), absN, varN, meanH, varH])
+    println("time t = ", round(t, digits = 4), ", energy = ", round(meanH, digits = 4), ", energyVar = ", round(varH, digits = 4))
+
+    push!(data, [t, meanN, absN, varN, meanH, varH])
 
     psi = apply(evolGates, psi; cutoff)
     normalize!(psi)
 
-    t += tau
-    t≈ttotal && break
+    (varH < 1) && (tau = 1e-4)
+    varH < cutoff_tebd && break
+    i += 1
+    i>=maxIter && break
   end
 
-  @show data[end]
-
-  # df = DataFrame(time = [d[1] for d in data], zPol = [d[2] for d in data]) #, xPol = [d[3] for d in data])
-  # name_obs = "data/heisenbergqns_tebd_N=$(N)"
-  # CSV.write(name_obs*".csv", df)
+  df = DataFrame(time = [d[1] for d in data], meanN = [d[2] for d in data], absN = [d[3] for d in data], varN = [d[4] for d in data], meanH = [d[5] for d in data], varH = [d[6] for d in data], psi = psi)
+  name_obs = "../../data/tebd_L=$(N)_locDim=$(D)_J=$(J)_g=$(g)_cutoff=$(cutoff).csv"
+  h5open(name_obs*".h5", "w") do file    
+    file["time"]  = df[:,"time"]
+    file["meanN"] = df[:,"meanH"]
+    file["absN"]  = df[:,"absN"]
+    file["varN"]  = df[:,"varN"]
+    file["meanH"] = df[:,"meanH"]
+    file["varH"]  = df[:,"varH"]
+  end
 end
