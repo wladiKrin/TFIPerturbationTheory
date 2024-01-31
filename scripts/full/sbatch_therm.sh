@@ -5,6 +5,6 @@
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=48
-#SBATCH --array=1-8
+#SBATCH --array=1-12
 
-srun julia -t 48 Hfull_thermal.jl ${SLURM_ARRAY_TASK_ID}
+srun ~/.juliaup/bin/julia -t 48 Hfull_Bound_therm.jl ${SLURM_ARRAY_TASK_ID}

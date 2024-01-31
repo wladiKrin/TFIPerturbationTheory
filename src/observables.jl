@@ -17,6 +17,22 @@ function imbalance(spins::Tuple{Vararg{Int64}}, L)
     end/prod(L)
 end
 
+## imbalanceStrip
+function imbalanceStrip(spins::Tuple{Vararg{Int64}}, L, n::Int)
+    n == 0 && return imbalance(spins, L)
+
+    spins = reshape([s for s in spins], L)
+
+    return mapreduce(+, Iterators.product(1:L[1], 1:L[2])) do (i,j)
+        if j <= L[1]/2 
+            spin = (spins[i,j] == 1) ? 1 : -1
+        else
+            spin = (spins[i,j] == 1) ? -1 : 1
+        end
+        return spin
+    end/prod(L)
+end
+
 ## domain wall length operator;;; not very efficient just use H0 for that
 function domainWallL(spins::Tuple{Vararg{Int64}}, L, neigh)
     spins = reshape([s for s in spins], L)
