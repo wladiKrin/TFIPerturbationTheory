@@ -1,0 +1,56 @@
+pgi8cluster26: Using Ethernet for MPI communication.
+pgi8cluster26: Using Ethernet for MPI communication.
+  Activating project at `/local/krinitsin/TFIPerturbationTheory`
+   Resolving package versions...
+  No Changes to `/local/krinitsin/TFIPerturbationTheory/Project.toml`
+  No Changes to `/local/krinitsin/TFIPerturbationTheory/Manifest.toml`
+beta = 2.0
+exp: 12159.067329 seconds (188.10 k allocations: 645.498 GiB, 0.01% gc time, 0.00% compilation time)
+Z: 0.000546 seconds
+ 60.202599 seconds (2 allocations: 64.000 GiB, 0.12% gc time)
+ 13.951559 seconds (2 allocations: 64.000 GiB, 0.60% gc time)
+ 11.900240 seconds (2 allocations: 64.000 GiB, 1.90% gc time)
+ 13.553824 seconds (2 allocations: 64.000 GiB, 0.50% gc time)
+ 14.888058 seconds (2 allocations: 64.000 GiB, 0.45% gc time)
+ 12.587284 seconds (2 allocations: 64.000 GiB, 0.54% gc time)
+(beta, Z, E_mean, imb_mean, dw_mean, CImb_mean, KImb_mean, par_mean) = (2.0, 7.842076286192752e24 - 133.33928992273516im, -26.552523284369535 - 5.802283497999261e-23im, 0.029842373077104235 - 7.383960467046376e-24im, -26.22412530927559 - 1.6966247643551768e-22im, 0.22479200336607116 - 9.002209383121324e-24im, -0.16859400161542712 + 1.0031581188900438e-23im, 2.0276032510860444e-15 - 6.682456081215391e-12im)
+beta = 1.0
+exp: 9910.570528 seconds (240 allocations: 605.737 GiB, 0.01% gc time)
+Z: 0.000464 seconds
+ 63.289341 seconds (2 allocations: 64.000 GiB, 0.11% gc time)
+ 13.684497 seconds (2 allocations: 64.000 GiB, 0.60% gc time)
+ 11.676682 seconds (2 allocations: 64.000 GiB, 1.92% gc time)
+ 13.556515 seconds (2 allocations: 64.000 GiB, 0.50% gc time)
+ 14.944741 seconds (2 allocations: 64.000 GiB, 0.45% gc time)
+ 12.573885 seconds (2 allocations: 64.000 GiB, 0.54% gc time)
+(beta, Z, E_mean, imb_mean, dw_mean, CImb_mean, KImb_mean, par_mean) = (1.0, 5.906942661181382e14 - 4.378049664756456e-8im, -21.47078459943348 + 6.52262080460421e-23im, 0.13638872669869265 - 1.365851547265357e-23im, -21.2662071053984 - 9.513962467868217e-22im, 0.793022988904623 + 3.7052989126930455e-24im, -0.5947672414081105 + 6.870294546011212e-24im, 5.970157860255545e-17 + 1.8720127875567104e-14im)
+beta = 0.6666666666666666
+exp: 9146.789913 seconds (216 allocations: 531.513 GiB, 0.01% gc time)
+Z: 0.000439 seconds
+ 62.983636 seconds (2 allocations: 64.000 GiB, 0.11% gc time)
+ 13.449327 seconds (2 allocations: 64.000 GiB, 0.62% gc time)
+ 11.699735 seconds (2 allocations: 64.000 GiB, 1.44% gc time)
+ 13.552913 seconds (2 allocations: 64.000 GiB, 0.50% gc time)
+ 14.557348 seconds (2 allocations: 64.000 GiB, 0.46% gc time)
+ 12.590489 seconds (2 allocations: 64.000 GiB, 0.54% gc time)
+(beta, Z, E_mean, imb_mean, dw_mean, CImb_mean, KImb_mean, par_mean) = (0.6666666666666666, 5.569878751545499e11 - 9.617596348981104e-13im, -19.9472172578123 + 1.6476948948570362e-23im, 0.18272344442060906 - 2.155040372704068e-25im, -19.758933651490093 - 1.8545034253127597e-23im, 0.7989410524949532 + 2.8193507010755865e-26im, -0.5992057890145481 - 1.8360841261008068e-25im, 4.057494034053997e-18 + 1.929681336927299e-13im)
+beta = 0.5
+exp: 9127.401486 seconds (192 allocations: 510.817 GiB, 0.01% gc time)
+Z: 0.000418 seconds
+ 62.494450 seconds (2 allocations: 64.000 GiB, 0.11% gc time)
+ 13.801467 seconds (2 allocations: 64.000 GiB, 0.60% gc time)
+ 11.707710 seconds (2 allocations: 64.000 GiB, 1.48% gc time)
+ 13.548623 seconds (2 allocations: 64.000 GiB, 0.50% gc time)
+ 14.771101 seconds (2 allocations: 64.000 GiB, 0.46% gc time)
+ 12.596962 seconds (2 allocations: 64.000 GiB, 0.54% gc time)
+(beta, Z, E_mean, imb_mean, dw_mean, CImb_mean, KImb_mean, par_mean) = (0.5, 2.4324459352366222e10 - 2.6181366263424627e-14im, -17.179748538166667 + 2.0191520318873645e-23im, 0.22613852990976327 + 1.2699893102763792e-26im, -16.99657124556691 - 9.379478995815868e-24im, 0.7996326445555446 + 1.5983337210117342e-25im, -0.5997244831787363 - 1.234978736450906e-25im, 3.2085203149725077e-19 - 1.1272014939642417e-12im)
+beta = 0.4
+exp: 9108.379463 seconds (192 allocations: 501.334 GiB, 0.01% gc time)
+Z: 0.000425 seconds
+ 62.760618 seconds (2 allocations: 64.000 GiB, 0.11% gc time)
+ 13.719393 seconds (2 allocations: 64.000 GiB, 0.61% gc time)
+ 11.694201 seconds (2 allocations: 64.000 GiB, 1.35% gc time)
+ 13.513842 seconds (2 allocations: 64.000 GiB, 0.50% gc time)
+ 15.005059 seconds (2 allocations: 64.000 GiB, 0.45% gc time)
+ 12.626435 seconds (2 allocations: 64.000 GiB, 0.61% gc time)
+(beta, Z, E_mean, imb_mean, dw_mean, CImb_mean, KImb_mean, par_mean) = (0.4, 5.065861443695599e9 - 3.6557048012654033e-17im, -14.004112555064077 + 2.036475743237672e-25im, 0.2486444970573625 - 7.0019913562523e-29im, -13.8317086166909 - 6.131650477228723e-26im, 0.7998121823486541 + 3.038080109157667e-28im, -0.5998591365704153 - 6.28965342390506e-28im, 2.635953500794396e-20 - 5.076923825070599e-14im)

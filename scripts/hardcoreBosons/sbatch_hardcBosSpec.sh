@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=HardcBosSpec8
-#SBATCH --output=log_HardcBosSpec8%a
-#SBATCH --error=log_HardcBosSpec8%a
+#SBATCH --job-name=HardcBosSpec4
+#SBATCH --output=log_HardcBosSpec4%a
+#SBATCH --error=log_HardcBosSpec4%a
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=48

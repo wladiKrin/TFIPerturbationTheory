@@ -1,3 +1,11 @@
+using Pkg; Pkg.activate(".")
+using CUDA, Distributed
+using Statistics
+using SparseArrays
+using LinearAlgebra
+using KrylovKit
+using DataFrames, HDF5
+
 function move_wall_right(conf::Tuple{Vararg{Vector{Int64}}}, l::Int)
     return Tuple(map(enumerate(conf)) do (layer,chain)
         if layer == l
@@ -91,10 +99,19 @@ end
 
 function imbalance(conf::Tuple{Vararg{Vector{Int64}}}, L, n)
     spins = toSpinGrid(conf, L, n)
-    return mapreduce(+, Iterators.product(1:L[1], 1:L[2])) do (i,j)
+    return mapreduce(+, Iterators.product(1:L[2], 1:L[1])) do (i,j)
         j <= L[1]/2 && return spins[i][j]
         return -spins[i][j]
     end/prod(L)
+end
+
+function imbalanceStrip(conf::Tuple{Vararg{Vector{Int64}}}, L, n, s)
+    spins = toSpinGrid(conf, L, n)
+    c= div(L[1],2)
+    return mapreduce(+, Iterators.product(1:L[1], (c-(s-1)):1:(c+s))) do (i,j)
+        j <= c && return spins[i][j]
+        return -spins[i][j]
+    end/(2*s*L[1])
 end
 
 function pol(conf::Tuple{Vararg{Vector{Int64}}}, L, n)

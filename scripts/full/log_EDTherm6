@@ -1,0 +1,118 @@
+pgi8cluster09: Using Ethernet for MPI communication.
+pgi8cluster09: Using Ethernet for MPI communication.
+  Activating project at `/local/krinitsin/TFIPerturbationTheory`
+   Resolving package versions...
+  No Changes to `/local/krinitsin/TFIPerturbationTheory/Project.toml`
+  No Changes to `/local/krinitsin/TFIPerturbationTheory/Manifest.toml`
+Precompiling project...
+[32m  ✓ [39m[90mCommonSolve[39m
+[32m  ✓ [39m[90mCompositionsBase[39m
+[32m  ✓ [39m[90mCEnum[39m
+[32m  ✓ [39m[90mScratch[39m
+[32m  ✓ [39m[90mLLVMLoopInfo[39m
+[32m  ✓ [39m[90mStaticArraysCore[39m
+[32m  ✓ [39m[90mConstructionBase[39m
+[32m  ✓ [39m[90mInverseFunctions[39m
+[32m  ✓ [39m[90mBFloat16s[39m
+[32m  ✓ [39mFastExpm
+[32m  ✓ [39m[90mMPItrampoline_jll[39m
+[32m  ✓ [39mCombinatorics
+[32m  ✓ [39m[90mNVTX_jll[39m
+[32m  ✓ [39m[90mJuliaNVTXCallbacks_jll[39m
+[32m  ✓ [39m[90mCUDA_Runtime_Discovery[39m
+[32m  ✓ [39m[90mMicrosoftMPI_jll[39m
+[32m  ✓ [39m[90mlibevent_jll[39m
+[32m  ✓ [39m[90mCompositionsBase → CompositionsBaseInverseFunctionsExt[39m
+[32m  ✓ [39m[90mHwloc_jll[39m
+[32m  ✓ [39m[90mLLVMExtra_jll[39m
+[32m  ✓ [39m[90mCUDA_Driver_jll[39m
+[32m  ✓ [39m[90mUnsafeAtomics[39m
+[32m  ✓ [39m[90mAbstractFFTs → AbstractFFTsTestExt[39m
+[32m  ✓ [39m[90mLLVMOpenMP_jll[39m
+[32m  ✓ [39m[90mMacroTools[39m
+[32m  ✓ [39m[90mPMIx_jll[39m
+[32m  ✓ [39m[90mAtomix[39m
+[32m  ✓ [39m[90mCUDA_Runtime_jll[39m
+[32m  ✓ [39m[90mprrte_jll[39m
+[32m  ✓ [39m[90mFixedPointNumbers[39m
+[32m  ✓ [39m[90mOpenMPI_jll[39m
+[32m  ✓ [39m[90mColorTypes[39m
+[32m  ✓ [39m[90mStaticArrays[39m
+[32m  ✓ [39m[90mLLVM[39m
+[32m  ✓ [39m[90mLLVM → BFloat16sExt[39m
+[32m  ✓ [39m[90mColors[39m
+[32m  ✓ [39m[90mUnsafeAtomicsLLVM[39m
+[32m  ✓ [39m[90mNVTX[39m
+[32m  ✓ [39m[90mAdapt → AdaptStaticArraysExt[39m
+[32m  ✓ [39m[90mGPUArrays[39m
+[32m  ✓ [39m[90mGPUCompiler[39m
+StaticArraysStatisticsExt[33m Waiting for background task / IO / timer.[39m
+[pid 1238196] waiting for IO to finish:
+ Handle type        uv_handle_t->data
+ fs_event           0x23cdc10->0x7fd46906b7c0
+ timer              0x23e5bf0->0x7fd46906b7f0
+This means that a package has started a background task or event source that has not finished running. For precompilation to complete successfully, the event source needs to be closed explicitly. See the developer documentation on fixing precompilation hangs for more help.
+ConstructionBaseStaticArraysExt[33m Waiting for background task / IO / timer.[39m
+[pid 1238202] waiting for IO to finish:
+ Handle type        uv_handle_t->data
+ fs_event           0x2483120->0x7fa1bc5ba6b0
+ timer              0x2200ce0->0x7fa1bc5ba6e0
+This means that a package has started a background task or event source that has not finished running. For precompilation to complete successfully, the event source needs to be closed explicitly. See the developer documentation on fixing precompilation hangs for more help.
+[32m  ✓ [39m[90mStaticArrays → StaticArraysStatisticsExt[39m
+[32m  ✓ [39m[90mStaticArrays → StaticArraysChainRulesCoreExt[39m
+[32m  ✓ [39m[90mKernelAbstractions[39m
+[32m  ✓ [39m[90mConstructionBase → ConstructionBaseStaticArraysExt[39m
+[32m  ✓ [39m[90mAccessors[39m
+[32m  ✓ [39m[90mAccessors → AccessorsStaticArraysExt[39m
+[32m  ✓ [39mRoots
+[32m  ✓ [39mCUDA
+[32m  ✓ [39m[90mCUDA → ChainRulesCoreExt[39m
+  50 dependencies successfully precompiled in 89 seconds. 57 already precompiled.
+  [33m2[39m dependencies had output during precompilation:[33m
+┌ [39mStaticArrays → StaticArraysStatisticsExt[33m
+│  [39m[pid 1238196] waiting for IO to finish:[33m
+│  [39m Handle type        uv_handle_t->data[33m
+│  [39m fs_event           0x23cdc10->0x7fd46906b7c0[33m
+│  [39m timer              0x23e5bf0->0x7fd46906b7f0[33m
+│  [39mThis means that a package has started a background task or event source that has not finished running. For precompilation to complete successfully, the event source needs to be closed explicitly. See the developer documentation on fixing precompilation hangs for more help.[33m
+└  [39m[33m
+┌ [39mConstructionBase → ConstructionBaseStaticArraysExt[33m
+│  [39m[pid 1238202] waiting for IO to finish:[33m
+│  [39m Handle type        uv_handle_t->data[33m
+│  [39m fs_event           0x2483120->0x7fa1bc5ba6b0[33m
+│  [39m timer              0x2200ce0->0x7fa1bc5ba6e0[33m
+│  [39mThis means that a package has started a background task or event source that has not finished running. For precompilation to complete successfully, the event source needs to be closed explicitly. See the developer documentation on fixing precompilation hangs for more help.[33m
+└  [39m
+beta = 2.0
+exp: 33396.613761 seconds (188.11 k allocations: 855.764 GiB, 0.01% gc time, 0.00% compilation time)
+Z: 0.001114 seconds
+162.109724 seconds (2 allocations: 64.000 GiB, 0.14% gc time)
+ 45.852871 seconds (2 allocations: 64.000 GiB, 0.76% gc time)
+ 39.219371 seconds (2 allocations: 64.000 GiB, 1.93% gc time)
+ 41.473694 seconds (2 allocations: 64.000 GiB, 0.40% gc time)
+ 44.669209 seconds (2 allocations: 64.000 GiB, 0.37% gc time)
+ 42.153456 seconds (2 allocations: 64.000 GiB, 0.39% gc time)
+(beta, Z, E_mean, imb_mean, dw_mean, CImb_mean, KImb_mean, par_mean) = (2.0, 3.345576628706965e26 - 6.766715963822898e12im, -27.76381817284735 - 3.498656703404363e-14im, 0.06018523467335631 - 3.377414494763567e-15im, -24.084890067556927 - 1.327365611656855e-13im, 0.38586255925630425 - 2.8438862043886798e-15im, -0.28939689942333185 + 1.1272482250576298e-14im, 8.37660649932721e-7 - 1.416048800731884e-10im)
+beta = 1.0
+exp: 40941.539782 seconds (244 allocations: 904.611 GiB, 0.02% gc time)
+Z: 0.002563 seconds
+164.733312 seconds (2 allocations: 64.000 GiB, 0.20% gc time)
+ 54.345012 seconds (2 allocations: 64.000 GiB, 3.41% gc time)
+ 40.755338 seconds (2 allocations: 64.000 GiB, 5.40% gc time)
+ 41.856457 seconds (2 allocations: 64.000 GiB, 0.40% gc time)
+ 45.252279 seconds (2 allocations: 64.000 GiB, 0.37% gc time)
+ 43.599545 seconds (2 allocations: 64.000 GiB, 0.38% gc time)
+(beta, Z, E_mean, imb_mean, dw_mean, CImb_mean, KImb_mean, par_mean) = (1.0, 2.413436904611948e15 - 158.40797147686015im, -23.418298748032544 + 2.249936111553445e-13im, 0.16288899743541252 - 7.283020197656579e-15im, -20.273916852136015 - 5.214799127233001e-13im, 0.7657536091864071 + 8.44944154230035e-15im, -0.5743151885647314 + 6.684320823051796e-15im, 6.24977889281892e-8 - 3.1041617064657736e-11im)
+beta = 0.6666666666666666
+exp: 15164.679781 seconds (218 allocations: 710.415 GiB, 0.05% gc time)
+Z: 0.001025 seconds
+149.650503 seconds (2 allocations: 64.000 GiB, 1.82% gc time)
+ 57.390010 seconds (2 allocations: 64.000 GiB, 4.47% gc time)
+ 41.141646 seconds (2 allocations: 64.000 GiB, 7.02% gc time)
+ 41.177417 seconds (2 allocations: 64.000 GiB, 0.41% gc time)
+ 44.603011 seconds (2 allocations: 64.000 GiB, 0.38% gc time)
+ 42.283439 seconds (2 allocations: 64.000 GiB, 0.40% gc time)
+(beta, Z, E_mean, imb_mean, dw_mean, CImb_mean, KImb_mean, par_mean) = (0.6666666666666666, 1.3008295306124236e12 + 0.002458029121730853im, -21.410431885890297 - 1.534068946745672e-14im, 0.20987947089918962 + 6.143357263705999e-17im, -18.59256985201852 + 1.891447461559157e-14im, 0.7915961945635853 - 1.7696269331161924e-17im, -0.5936971368217834 + 1.5906385003771715e-16im, 4.701373624574319e-9 + 4.266104853698974e-12im)
+beta = 0.5
+slurmstepd: error: *** STEP 15053.0 ON pgi8cluster09 CANCELLED AT 2024-02-07T15:34:40 ***
+slurmstepd: error: *** JOB 15053 ON pgi8cluster09 CANCELLED AT 2024-02-07T15:34:40 ***

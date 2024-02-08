@@ -7,4 +7,4 @@
 #SBATCH --cpus-per-task=48
 #SBATCH --array=1-12
 
-srun ~/.juliaup/bin/julia -t 48 Hfull_Bound_therm.jl ${SLURM_ARRAY_TASK_ID}
+srun julia -t 48 Hfull_Bound_therm.jl ${SLURM_ARRAY_TASK_ID}

@@ -1,0 +1,6 @@
+pgi8cluster33: Using Ethernet for MPI communication.
+pgi8cluster33: Using Ethernet for MPI communication.
+  Activating project at `/local/krinitsin/TFIPerturbationTheory`
+beta = 2.0
+slurmstepd: error: *** STEP 15058.0 ON pgi8cluster33 CANCELLED AT 2024-02-07T15:34:40 ***
+slurmstepd: error: *** JOB 15058 ON pgi8cluster33 CANCELLED AT 2024-02-07T15:34:40 ***

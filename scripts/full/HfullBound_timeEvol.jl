@@ -76,13 +76,22 @@ let
   );
 
   ### initial state ###
-  # init_spin = vcat(fill(1,Int(N/2)),fill(0,Int(N/2)))
-  init_spin = fill(1,N)
+  init_spin = vcat(fill(1,Int(N/2)),fill(0,Int(N/2)))
   init_idx = first(spin_basis_table[Tuple(init_spin)]);
 
-  psi=zeros(length(spin_basis))
-  psi[init_idx]=1
-  psi = sparse(psi)
+  psi1=zeros(length(spin_basis))
+  psi1[init_idx]=1
+  psi1 = sparse(psi1)
+
+  init_spinC = vcat(fill(0,Int(N/2)),fill(1,Int(N/2)))
+  init_idxC = first(spin_basis_table[Tuple(init_spinC)]);
+
+  psiC=zeros(length(spin_basis))
+  psiC[init_idxC]=1
+  psiC = sparse(psiC)
+
+  (p, phi) = (0.9, pi/2)
+  psi = sqrt(p)*psi1 + sqrt(1-p)*exp(1im*phi)*psiC
 
   ### build Hamiltonians ###
   H0  = build_H0(spin_basis, next_neighbours, spin_basis_table, (L,J,g,h));
@@ -144,5 +153,5 @@ let
     twoCorrel = [real(d[5]) for d in data],
     corr = [real(d[6]) for d in data],
   )
-  CSV.write("../../data/obs_ED_Bound_fullPolPos_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df)
+  CSV.write("../../data/obs_ED_Bound_mixedState_p=$(p)_phi=$(phi)_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df)
 end

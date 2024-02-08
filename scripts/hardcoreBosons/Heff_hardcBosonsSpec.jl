@@ -12,10 +12,9 @@ for g in gs
     J = -1.;
     h = 0.;
     # g = gs[parse(Int, ARGS[1])]
-    L = Ls[1]
+    L = Ls[2]
+    n = 3 # ns[parse(Int, ARGS[1])]
     N = prod(L);
-
-    n = 5
 
     single_dw_basis = map(1:n) do l
         s = fill(0,n)
@@ -48,5 +47,9 @@ for g in gs
 
     df = DataFrame(vals = vals, groundstate = vecs[:,1])
 
-    CSV.write("../../data/spec_Eff_Bound_hardcoreBosonsDiffEnergy_n=$(n)_L=($(L[1])_$(L[2]))_g=$(g).csv", df);
+    name = "../../data/spec_Eff_Bound_hardcoreBosonsDiffEnergy_n=$(n)_L=($(L[1])_$(L[2]))_g=$(g)"
+    h5open(name*".h5", "w") do file    
+        file["vals"] = vals
+        file["vecs"] = vecs
+    end
 end

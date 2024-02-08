@@ -1,5 +1,6 @@
 include("../../src/PertTheory.jl")
 using Statistics
+using FastExpm
 
 gs = [-0.1,-0.2,-0.3,-0.5,-0.7,-0.75,-0.9,-1.0,-1.25,-1.5,-1.75,-2.0]
 
@@ -157,7 +158,6 @@ spin_basis_table = Dict(
     end
 );
 
-
 let
     array_id = parse(Int, ARGS[1])
     g = gs[array_id]
@@ -177,20 +177,19 @@ let
     lMM = build_lattice_mirror(spin_basis, spin_basis_table, (L,J,g,h))
     oneM = sparse(1.0I, length(spin_basis), length(spin_basis));
 
+    CImb = sparse(sgn.(imbM))
+    KImb = 1im/2 * (CImb*parM-parM*CImb)
+
+    #=
+    commImb1 = commutator(CImb, H)
+    commImb2 = commutator(KImb, H)
+
     CPol = sparse(sgn.(polM))
     KPol = 1im/2 * (CPol*parM-parM*CPol)
 
     commPol1 = commutator(CPol, H)
     commPol2 = commutator(KPol, H)
 
-    CImb = sparse(sgn.(imbM))
-    KImb = 1im/2 * (CImb*parM-parM*CImb)
-
-    commImb1 = commutator(CImb, H)
-    commImb2 = commutator(KImb, H)
-    # commPol3 = commutator(parM, H);
-
-    vals, vecs, dw = readSpec("../../data/spec_ED_Bound_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h)")
     data = map(1:length(spin_basis)) do i
         v = vecs[:,i]
         return dot(v, commImb1*v), dot(v, commImb2*v), dot(v, commPol1*v), dot(v, commPol2*v), dot(v, CImb*v), dot(v, CPol*v)
@@ -202,38 +201,48 @@ let
         file["commPol2"] = [d[2] for d in data]
         file["commImb1"] = [d[3] for d in data]
         file["commImb2"] = [d[4] for d in data]
-        file["CImb"] = [d[5] for d in data]
-        file["CPol"] = [d[6] for d in data]
+        file["CImb"]     = [d[5] for d in data]
+        file["CPol"]     = [d[6] for d in data]
+    end
+    =#
+
+    vals, vecs, dw = readSpec("../../data/spec_ED_Bound_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h)")
+
+    CImb_precalc = map(1:length(spin_basis)) do i
+        v = vecs[:,i]
+        return dot(v, CImb*v)
     end
 
-#=
-    Ts = 0.5:0.5:2.0
-    betas = 1 ./ collect(Ts)
+    Ts      = collect(0.5:0.5:2.5)
+    betas   = 1 ./ Ts
+    lambdas = (-7.6, 5.7)
 
     data = map(betas) do beta
-        @show g,beta
+        @show beta
 
-        res = vecs
-        @time res = res * diagm(exp.(-beta .* vals))
-        @time res = res * Transpose(vecs)
+        exponent = -beta*H - lambdas[1] * CImb - lambdas[2] * KImb
+        @time "exp" res = fastExpm(exponent; threshold=1e-4, nonzero_tol=1e-9)
+        
+        @time "Z" Z = tr(res)
+        @time E_mean = tr(H*res) / Z
+        @time imb_mean = tr(imbM*res) / Z
+        @time dw_mean = tr(H0*res) / Z
+        @time CImb_mean = tr(CImb*res) / Z
+        @time KImb_mean = tr(KImb*res) / Z
+        @time par_mean = tr(parM*res) / Z
 
-        @time Z = tr(res)
-        @time commPol1_mean = tr(commPol1*res) / Z
-        @time commPol2_mean = tr(commPol2*res) / Z
-        @time commImb1_mean = tr(commImb1*res) / Z
-        @time commImb2_mean = tr(commImb2*res) / Z
-
-        @show (beta, Z, commPol1_mean, commPol2_mean, commImb1_mean, commImb2_mean)
-        return [beta, Z, commPol1_mean, commPol2_mean, commImb1_mean, commImb2_mean]
+        @show (beta, Z, E_mean, imb_mean, dw_mean, CImb_mean, KImb_mean, par_mean)
+        return real.([beta, Z, E_mean, imb_mean, dw_mean, CImb_mean, KImb_mean, par_mean])
     end
-    name = "../../data/symmBreaking_L=($(L[1])_$(L[2]))_g=$(g)"
+    name = "../../data/mixedState_GGE_L=($(L[1])_$(L[2]))_g=$(g)"
     h5open(name*".h5", "w") do file    
         file["beta"] = [d[1] for d in data]
         file["Z"] = [d[2] for d in data]
-        file["commPol1"] = [d[3] for d in data]
-        file["commPol2"] = [d[4] for d in data]
-        file["commImb1"] = [d[5] for d in data]
-        file["commImb2"] = [d[6] for d in data]
+        file["E"] = [d[3] for d in data]
+        file["imb"] = [d[4] for d in data]
+        file["dw"] = [d[5] for d in data]
+        file["C"] = [d[6] for d in data]
+        file["K"] = [d[7] for d in data]
+        file["P"] = [d[8] for d in data]
     end
-=#
 end

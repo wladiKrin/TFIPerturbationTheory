@@ -1,0 +1,30 @@
+pgi8cluster25: Using Ethernet for MPI communication.
+pgi8cluster25: Using Ethernet for MPI communication.
+  Activating project at `/local/krinitsin/TFIPerturbationTheory`
+beta = 2.0
+exp: 22470.189342 seconds (188.13 k allocations: 988.063 GiB, 0.01% gc time, 0.00% compilation time)
+Z: 0.000578 seconds
+ 60.630971 seconds (2 allocations: 64.000 GiB, 0.20% gc time)
+ 13.931771 seconds (2 allocations: 64.000 GiB, 0.86% gc time)
+ 11.916885 seconds (2 allocations: 64.000 GiB, 2.99% gc time)
+ 13.623774 seconds (2 allocations: 64.000 GiB, 0.52% gc time)
+ 15.180156 seconds (2 allocations: 64.000 GiB, 0.47% gc time)
+ 12.620688 seconds (2 allocations: 64.000 GiB, 0.56% gc time)
+(beta, Z, E_mean, imb_mean, dw_mean, CImb_mean, KImb_mean, par_mean) = (2.0, 5.199208015254533e27 - 2.9670605875031655e15im, -28.770079954987928 - 9.554799789161039e-14im, 0.07987534495151961 + 2.6731794470773106e-14im, -22.71144305220106 - 1.693697251728066e-12im, 0.4563084015964871 + 2.04184516418979e-13im, -0.34223119325859697 + 4.267575456785934e-13im, 4.015707857076859e-5 - 2.4629436453154288e-11im)
+beta = 1.0
+exp: 23850.829164 seconds (244 allocations: 965.356 GiB, 0.01% gc time)
+Z: 0.000522 seconds
+ 61.224309 seconds (2 allocations: 64.000 GiB, 0.22% gc time)
+ 14.209433 seconds (2 allocations: 64.000 GiB, 0.91% gc time)
+ 11.945833 seconds (2 allocations: 64.000 GiB, 2.89% gc time)
+ 13.576949 seconds (2 allocations: 64.000 GiB, 0.52% gc time)
+ 14.952280 seconds (2 allocations: 64.000 GiB, 0.47% gc time)
+ 12.744941 seconds (2 allocations: 64.000 GiB, 0.57% gc time)
+(beta, Z, E_mean, imb_mean, dw_mean, CImb_mean, KImb_mean, par_mean) = (1.0, 8.351690954438869e15 - 29180.163931747386im, -25.062488098001708 + 3.74015788422268e-12im, 0.18325751383616648 - 5.888762351487133e-13im, -19.329184789374793 - 3.539404859305968e-11im, 0.7536554885844023 - 1.9921698605869474e-13im, -0.5652415688608314 + 1.8891927005829065e-13im, 4.1397288887027495e-6 + 1.7686356563631152e-11im)
+beta = 0.6666666666666666
+slurmstepd: error: *** STEP 15056.0 ON pgi8cluster25 CANCELLED AT 2024-02-07T15:34:40 ***
+slurmstepd: error: *** JOB 15056 ON pgi8cluster25 CANCELLED AT 2024-02-07T15:34:40 ***
+
+[164788] signal (15): Terminated
+in expression starting at /local/krinitsin/TFIPerturbationTheory/scripts/full/Hfull_Bound_therm.jl:161
+pthread_cond_wait at /lib64/libpthread.so.0 (unknown line)

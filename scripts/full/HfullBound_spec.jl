@@ -61,7 +61,7 @@ let
   psi = sparse(psi)
 
   ### build Hamiltonians ###
-  H0  = build_H0(spin_basis, next_neighbours, spin_basis_table, (L,J,g,h));
+  H0  = build_H0_pert(spin_basis, next_neighbours, spin_basis_table, (L,J,g,h));
   H1, R1 = build_H1_R1(spin_basis, spin_basis_table, (L,J,g,h));
   V1 = H1+R1;
 
@@ -75,5 +75,5 @@ let
       return sum(absVals .* dw_precalc)
   end
 
-  saveSpec("../../data/spec_ED_longit_0.2_Bound_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h)", vals, vecs, dw);
+  saveSpec("../../data/spec_ED_Bound_pert_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h)", vals, vecs, dw);
 end
