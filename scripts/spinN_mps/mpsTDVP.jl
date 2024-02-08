@@ -15,18 +15,40 @@ function ITensors.op(::OpName"Nabs", ::SiteType"Qudit", s1::Index, s2::Index)
   return itensor(mat, s2', s1', s2, s1)
 end
 
+function ITensors.op(::OpName"AAdag", ::SiteType"Qudit", s::Index)
+  mat = diagm(1 => fill(1,dim(s)-1), -1 => fill(1,dim(s)-1))
+  return itensor(mat, s', s)
+end
 
-function Ising(J, g, h, N,s)
-    ampo = OpSum()
+
+function Ising(J, g, h, N, locDim, s)
+  ampo = OpSum()
+
+  n = locDim-1
+
+  function ITensors.op(::OpName"N2", ::SiteType"Qudit", s::Index)
+    mat = diagm(collect(0:dim(s)-1).^2)
+    return itensor(mat, s', s)
+  end
+  A = map(Iterators.product(1:n,1:n)) do (i,j)
+    return i^(2*j)
+  end
+  b = collect(1:n)
+  Ainv = A^-1
+  alphas = Ainv*b
 	    
   for (j1,j2) in zip(1:N, vcat(2:N,1))
-    # ampo += J, "Nabs", (j1, j2)
-    add!(ampo, op("Nabs", s[j1], s[j2]))
+    for (ia, a) in enumerate(alphas)
+      ia = 2*ia
+      for k in 0:ia
+        opString = vcat(vcat(fill(["N", j1], k)...), vcat(fill(["N", j2], ia-k)...))
+        coeff = J*a*binomial(ia, k)
+        add!(ampo, coeff, opString...)
+      end
 	end
 
   for j in 1:N
-    ampo += g, "Adag", j
-    ampo += g, "A", j
+    ampo += g, "AAdag", j
 	end
 
 	return ampo
@@ -44,7 +66,7 @@ let
   s = siteinds("Qudit", N; dim = D)
   
   # Model MPO
-  model = Ising(J, g, h, N,s)
+  model = Ising(J, g, h, N, D-1)
   # Make MPO
   mpo = ITensors.MPO(model, s)
 
