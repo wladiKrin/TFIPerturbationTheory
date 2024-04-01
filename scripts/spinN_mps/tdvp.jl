@@ -26,6 +26,10 @@ function Ising(;L, g, J = -1, d)
   return ampo
 end
 
+Ls = (8,16,20)
+bondDims = (16,32)
+gs = [-0.25,-0.5,-0.75,-1.0,-1.25,-1.5,-1.75,-2.0]
+
 function current_sweep(; which_sweep)
   return which_sweep
 end
