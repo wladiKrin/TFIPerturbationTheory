@@ -1,6 +1,0 @@
-pgi8cluster01: Using Ethernet for MPI communication.
-pgi8cluster01: Using Ethernet for MPI communication.
-  Activating project at `/local/krinitsin/TFIPerturbationTheory`
-beta = 2.0
-slurmstepd: error: *** STEP 15059.0 ON pgi8cluster01 CANCELLED AT 2024-02-07T15:34:40 ***
-slurmstepd: error: *** JOB 15059 ON pgi8cluster01 CANCELLED AT 2024-02-07T15:34:40 ***

@@ -5,6 +5,6 @@
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=48
-#SBATCH --array=14-17
+#SBATCH --array=1-7
 
-srun julia -t 48 HfullBound_timeEvol.jl ${SLURM_ARRAY_TASK_ID}
+julia -t 48 HfullBound_timeEvol.jl ${SLURM_ARRAY_TASK_ID}

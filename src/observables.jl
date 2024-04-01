@@ -24,13 +24,16 @@ function imbalanceStrip(spins::Tuple{Vararg{Int64}}, L, n::Int)
     spins = reshape([s for s in spins], L)
 
     return mapreduce(+, Iterators.product(1:L[1], 1:L[2])) do (i,j)
+        if (j <= div(L[1],2)-n) || (j >= div(L[1],2)+n+1)
+            return 0
+        end
         if j <= L[1]/2 
             spin = (spins[i,j] == 1) ? 1 : -1
         else
             spin = (spins[i,j] == 1) ? -1 : 1
         end
         return spin
-    end/prod(L)
+    end/(L[2] * 2*n)
 end
 
 ## domain wall length operator;;; not very efficient just use H0 for that

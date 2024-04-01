@@ -158,15 +158,19 @@ spin_basis_table = Dict(
     end
 );
 
+# for g in gs
 let
     array_id = parse(Int, ARGS[1])
     g = gs[array_id]
+    @show g
 
     ### build Hamiltonians ###
     H0  = build_H0(spin_basis, next_neighbours, spin_basis_table, (L,J,g,h));
     H1, R1 = build_H1_R1(spin_basis, spin_basis_table, (L,J,g,h));
     V1 = H1+R1;
     H = H0+V1
+
+    vals, vecs, dw = readSpec("../../data/spec_ED_Bound_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h)")
 
     imb_precalc = map(s -> imbalance(s, L), spin_basis)
 
@@ -178,7 +182,7 @@ let
     oneM = sparse(1.0I, length(spin_basis), length(spin_basis));
 
     CImb = sparse(sgn.(imbM))
-    KImb = 1im/2 * (CImb*parM-parM*CImb)
+    KImb = 1im/2 * (CImb*lMM-lMM*CImb)
 
     #=
     commImb1 = commutator(CImb, H)
@@ -197,23 +201,21 @@ let
         
     name = "../../data/symmBreaking_eigenvectors_L=($(L[1])_$(L[2]))_g=$(g)"
     h5open(name*".h5", "w") do file    
-        file["commPol1"] = [d[1] for d in data]
-        file["commPol2"] = [d[2] for d in data]
-        file["commImb1"] = [d[3] for d in data]
-        file["commImb2"] = [d[4] for d in data]
+        file["commCPol"] = [d[1] for d in data]
+        file["commKPol"] = [d[2] for d in data]
+        file["commCImb"] = [d[3] for d in data]
+        file["commKImb"] = [d[4] for d in data]
         file["CImb"]     = [d[5] for d in data]
         file["CPol"]     = [d[6] for d in data]
     end
     =#
-
-    vals, vecs, dw = readSpec("../../data/spec_ED_Bound_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h)")
 
     CImb_precalc = map(1:length(spin_basis)) do i
         v = vecs[:,i]
         return dot(v, CImb*v)
     end
 
-    Ts      = collect(0.5:0.5:2.5)
+    Ts      = collect(2.5:-0.5:0.5)
     betas   = 1 ./ Ts
     lambdas = (-7.6, 5.7)
 
@@ -229,11 +231,12 @@ let
         @time dw_mean = tr(H0*res) / Z
         @time CImb_mean = tr(CImb*res) / Z
         @time KImb_mean = tr(KImb*res) / Z
-        @time par_mean = tr(parM*res) / Z
+        @time lI_mean = tr(lMM*res) / Z
 
-        @show (beta, Z, E_mean, imb_mean, dw_mean, CImb_mean, KImb_mean, par_mean)
-        return real.([beta, Z, E_mean, imb_mean, dw_mean, CImb_mean, KImb_mean, par_mean])
+        @show (beta, Z, E_mean, imb_mean, dw_mean, CImb_mean, KImb_mean, lI_mean)
+        return real.([beta, Z, E_mean, imb_mean, dw_mean, CImb_mean, KImb_mean, lI_mean])
     end
+
     name = "../../data/mixedState_GGE_L=($(L[1])_$(L[2]))_g=$(g)"
     h5open(name*".h5", "w") do file    
         file["beta"] = [d[1] for d in data]
@@ -243,6 +246,6 @@ let
         file["dw"] = [d[5] for d in data]
         file["C"] = [d[6] for d in data]
         file["K"] = [d[7] for d in data]
-        file["P"] = [d[8] for d in data]
+        file["lI"] = [d[8] for d in data]
     end
 end

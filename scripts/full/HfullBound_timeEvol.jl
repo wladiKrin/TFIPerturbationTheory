@@ -1,7 +1,7 @@
 include("../../src/PertTheory.jl")
 
-gs = [-0.1,-0.2,-0.3,-0.4,-0.5,-0.6,-0.7,-0.75,-0.8,-0.85,-0.9,-0.95,-1.0,-1.25,-1.5,-1.75,-2.0]
-# gs = [-0.1,-0.2,-0.3,-0.4,-0.5,-0.7,-0.75,-0.8,-0.85,-0.9,-0.95,-1.0,-2.0]
+# gs = [-0.1,-0.2,-0.3,-0.4,-0.5,-0.6,-0.7,-0.75,-0.8,-0.85,-0.9,-0.95,-1.0,-1.25,-1.5,-1.75,-2.0]
+gs = [-0.5,-0.75,-1.0,-1.25,-1.5,-1.75,-2.0]
 
 ## domain wall length operator;;; not very efficient just use H0 for that
 function domainWallL(spins::Tuple{Vararg{Int64}}, L, neigh)
@@ -83,6 +83,7 @@ let
   psi1[init_idx]=1
   psi1 = sparse(psi1)
 
+  #=
   init_spinC = vcat(fill(0,Int(N/2)),fill(1,Int(N/2)))
   init_idxC = first(spin_basis_table[Tuple(init_spinC)]);
 
@@ -91,7 +92,9 @@ let
   psiC = sparse(psiC)
 
   (p, phi) = (0.9, pi/2)
-  psi = sqrt(p)*psi1 + sqrt(1-p)*exp(1im*phi)*psiC
+  =#
+
+  psi = psi1 # sqrt(p)*psi1 + sqrt(1-p)*exp(1im*phi)*psiC
 
   ### build Hamiltonians ###
   H0  = build_H0(spin_basis, next_neighbours, spin_basis_table, (L,J,g,h));
@@ -102,6 +105,7 @@ let
 
   ### observables ###
   imb_precalc = map(s -> imbalance(s, L), spin_basis)
+  imbS1_precalc = map(s -> imbalanceStrip(s, L, 1), spin_basis)
   corr_precalc = map(s -> corrF(s, L), spin_basis)
   twoCorrelM  = build_twoCorrel(spin_basis, spin_basis_table)
   xPolM       = build_xPol(spin_basis, spin_basis_table)
@@ -127,6 +131,11 @@ let
         return α * imb_precalc[i]
       end
 
+      imbS1 = mapreduce(+, enumerate(psi_prime)) do (i,psi_i)
+        alpha = abs2(psi_i)
+        return alpha * imbS1_precalc[i]
+      end
+
       corr = mapreduce(+, enumerate(psi_prime)) do (i,psi_i)
         alpha = abs2(psi_i)
         return alpha * corr_precalc[i]
@@ -137,7 +146,7 @@ let
       twoCorrel = dot(psi_prime, twoCorrelM*psi_prime)
       xPol      = dot(psi_prime, xPolM*psi_prime)
 
-      append!(data, [[t, imb, N, xPol, twoCorrel, corr]])
+      append!(data, [[t, imb, N, xPol, twoCorrel, corr, imbS1]])
 
       # Propagate state
       U = exp.(-1im*dt .* vals)
@@ -152,6 +161,7 @@ let
     xPol = [real(d[4]) for d in data], 
     twoCorrel = [real(d[5]) for d in data],
     corr = [real(d[6]) for d in data],
+    imbS1 = [real(d[7]) for d in data],
   )
-  CSV.write("../../data/obs_ED_Bound_mixedState_p=$(p)_phi=$(phi)_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df)
+  CSV.write("../../data/obs_ED_Bound_L=($(L[1])_$(L[2]))_J=$(J)_g=$(g)_h=$(h).csv", df)
 end
