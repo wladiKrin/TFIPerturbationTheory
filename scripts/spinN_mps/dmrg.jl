@@ -36,7 +36,8 @@ end
 
 function Ising(;L, g, J = -1, d)
   ampo = OpSum()
-  for (j1,j2) in zip(1:L, vcat(2:L, 1))
+  # for (j1,j2) in zip(1:L, vcat(2:L, 1))
+  for (j1,j2) in zip(1:L-1, 2:L)
     # ampo += (g,"X", j1) 
     ampo += (g,"S+", j1) 
     ampo += (g,"S-", j1) 
@@ -47,6 +48,9 @@ function Ising(;L, g, J = -1, d)
       end
     end
   end
+
+  ampo += (g,"S+", L) 
+  ampo += (g,"S-", L) 
 
   return ampo
 end
@@ -114,15 +118,12 @@ end
 gs = [-0.5,-0.6,-0.7,-0.8,-0.9,-0.95,-1.0,-1.05,-1.1,-1.2,-1.3,-1.5,]
 
 let
-  N = parse(Int, ARGS[1]) #length of lattice
-  D = parse(Int, ARGS[2]) #length of lattice
-  # D = 2 #max Sz component
-  maxDim = parse(Int, ARGS[3])
+  N = 8# parse(Int, ARGS[1]) #length of lattice
+  D = 2#parse(Int, ARGS[2]) #length of lattice
   (J,h) = (-1.,-0.)
-  g = gs[parse(Int, ARGS[4])]
+  g = -1.5 #gs[parse(Int, ARGS[3])]
 
-  # tmax = 100
-  nsweeps = 500
+  nsweeps = 10
 
   ## Ising model ##
   graph = N #named_path_graph(N)
@@ -131,11 +132,10 @@ let
   
   # Model MPO
   model = Ising(L=N, g=g, J = J, d=D)
-  @show model
   H = MPO(model, s)
 
   # Make MPS
-  psi = randomMPS(s; linkdims=16)
+  psi = randomMPS(s)
   psi = psi / norm(psi)
 
   function measure_En(; state)
@@ -169,72 +169,30 @@ let
     "proj8"  => measure_proj8,
   )
 
-  t = 0 
-  #while maxlinkdim(state) < maxDim
-  #    state = tdvp(
-  #      H,
-  #      # -im * tmax,
-  #      -im * dt,
-  #      state;
-  #      nsweeps = 1,
-  #      nsite = 2,
-  #      reverse_step=true,
-  #      normalize=true,
-  #      maxdim=maxDim,
-  #      cutoff=1e-14,
-  #      outputlevel=1,
-  #      (step_observer!)=obs,
-  #    )
-  #    t += dt
-  #end
+  prevEnergy = measure_En(; state=psi)
 
-  # phi = ITensorTDVP.tdvp(
-  #   H,
-  #   -1.0,
-  #   state;
-  #   nsweeps = nsweeps,
-  #   reverse_step=false,
-  #   nsite = 1, 
-  #   # normalize=true,
-  #   maxdim=maxDim,
-  #   cutoff=1e-10,
-  #   outputlevel=1,
-  #   (step_observer!)=obs,
-  # )
+  for maxDim in 10:10:200
+    println("=========================== bond dimension = $(maxDim) =================================")
+    psi = ITensorTDVP.dmrg(
+      H,
+      psi;
+      nsweeps=10,
+      maxdim=maxDim,
+      cutoff=1e-10,
+      noise = vcat(fill(1e-3, 4), 0),#1e-1,
+      outputlevel=1,
+      (sweep_observer!)=obs,
+    )
+    
+    currEnergy = measure_En(; state=psi)
+    if abs(currEnergy - prevEnergy) < 1e-6
+      break
+    end
+    prevEnergy = currEnergy
+  end
 
-  phi = ITensorTDVP.dmrg(
-    H,
-    psi;
-    nsweeps = nsweeps,
-    # nsite = 1,
-    maxdim=maxDim,
-    cutoff=1e-10,
-    outputlevel=1,
-    (sweep_observer!)=obs,
-  )
-
-  # df = DataFrame(
-  #   t     = obs.sweep, 
-  #   energy  = obs.energy, 
-  #   entropy = obs.ent, 
-  #   N     = obs.N, 
-  #   Nabs  = obs.Nabs, 
-  #   N2    = obs.N2, 
-  #   proj0 = obs.proj0, 
-  #   proj1 = obs.proj1, 
-  #   proj2 = obs.proj2, 
-  #   proj3 = obs.proj3, 
-  #   proj4 = obs.proj4, 
-  #   proj5 = obs.proj5, 
-  #   proj6 = obs.proj6, 
-  #   proj7 = obs.proj7, 
-  #   proj8 = obs.proj8, 
-  # )
-
-  #CSV.write("../../data/obs_hardcoreBosons_mps_new_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_nsweeps=$(nsweeps).csv", df)
-  savedata("../../data/obs_hardcoreBosons_mps_GS_2site_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_nsweeps=$(nsweeps)", obs)
-  #statemps = MPS(collect(vertex_data(state)))
-  h5open("./ttns/GS_hardcoreBosons_mps_GS_2site_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_nsweeps=$(nsweeps).h5", "w") do file
+  savedata("../../data/obs_hardcoreBosons_mps_GS_2site_wNoise_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxlinkdim(psi))", obs)
+  h5open("./ttns/GS_hardcoreBosons_mps_GS_2site_wNoise_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxlinkdim(psi)).h5", "w") do file
     write(file, "mps", phi)
   end
 end
