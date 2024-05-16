@@ -1,16 +1,21 @@
-include("../../src/PertTheory.jl")
+include("/local/krinitsin/TFIPerturbationTheory/src/PertTheory.jl")
 include("./params.jl")
 
 gs = [-0.25,-0.5,-0.75,-1.0,-1.25,-1.5,-1.75,-2.0]
+
 let
     g = gs[parse(Int, ARGS[1])]
+    # g = gs[1]
+# for g in gs
     params = (J,g,S)
     obs = obs_SG
     F   = F_SG
 
     data = []
 
-    Threads.@threads for _ in 1:N
+    Threads.@threads for num in 1:N
+    # for num in 1:N
+        @show num
         t = 0
         dataTemp = []
 

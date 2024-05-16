@@ -6,7 +6,7 @@ function ITensors.space(::SiteType"SpinN";
 
   #global GLB_N_BOSONS = nbosons
   if conserve_number
-    return [QN(qnname_number, nn, -1) => 1 for nn in -nz:nz]
+    return [QN(qnname_number, nn) => 1 for nn in -nz:nz]
   end 
 
   return 2*nz + 1 

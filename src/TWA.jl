@@ -132,7 +132,6 @@ function analyze_data(data, params)
             return d[2:end]
         end
     end
-    return length(Sz[1][1]) #[length(s) for s in Sz[1]]
 
     meanSz = [sum([mean(s[i]) for s in Sz])/length(Sz) for i in 1:length(Sz[1])]
     # absSz  = [sum([mean(abs.(s[i])) for s in Sz])/length(Sz) for i in 1:length(Sz[1])]
@@ -140,8 +139,7 @@ function analyze_data(data, params)
 
     # dw = [sum([sum([abs.(s1-s2) for (s1,s2) in zip(s, vcat(s[2:end],s[1]))]) for s in Sz])/length(Sz) for i in 1:length(Sz[1])]
 
-
-    df = DataFrame(
+    return DataFrame(
         t      = [real(d[1]) for d in data[1]], 
         meanSz = meanSz,
         imb    = imb,

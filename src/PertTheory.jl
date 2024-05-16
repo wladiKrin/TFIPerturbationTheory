@@ -1,5 +1,5 @@
-# using Pkg; Pkg.activate("/local/krinitsin/TFIPerturbationTheory/")
-using Pkg; Pkg.activate("/Users/wladi/Projects/TFIPerturbationTheory/")
+using Pkg; Pkg.activate("/local/krinitsin/TFIPerturbationTheory/")
+# using Pkg; Pkg.activate("/Users/wladi/Projects/TFIPerturbationTheory/")
 using Statistics
 using SparseArrays
 using LinearAlgebra

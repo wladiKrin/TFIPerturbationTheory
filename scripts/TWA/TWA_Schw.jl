@@ -10,12 +10,13 @@ let
 
     data = []
 
-    Threads.@threads for _ in 1:N
+    Threads.@threads for num in 1:N
+        @show num
         t = 0
         dataTemp = []
 
-        a0    = μ .* exp.(1im * 2* pi *rand(L[2])) 
-        aDag0 = μ .* exp.(1im * 2* pi *rand(L[2])) 
+        a0    = mu .* exp.(1im * sigma * 2pi * randn(L[2]))
+        aDag0 = mu .* exp.(1im * sigma * 2pi * randn(L[2]))
         fields = (a0, aDag0)
 
         # Compute time evolution
@@ -34,5 +35,5 @@ let
     end
 
     df_res = analyze_data(data, params)
-    CSV.write("../../data/TWA_Schw_L=$(L[2])_Sz=$(S)_N=$(N)_g=$(g).csv", df_res)
+    CSV.write("../../data/TWA_Schw_L=$(L[2])_Sz=$(S)_N=$(N)_g=$(g)_sigma=$(sigma).csv", df_res)
 end;

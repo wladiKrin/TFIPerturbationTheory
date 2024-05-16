@@ -2,6 +2,7 @@ include("../../src/PertTheory.jl")
 include("./params.jl")
 
 gs = [-0.25,-0.5,-0.75,-1.0,-1.25,-1.5,-1.75,-2.0]
+
 let
     g = gs[parse(Int, ARGS[1])]
     params = (J,g,S)
@@ -10,7 +11,8 @@ let
 
     data = []
 
-    Threads.@threads for _ in 1:N
+    Threads.@threads for num in 1:N
+        @show num
         t = 0
         dataTemp = []
 

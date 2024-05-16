@@ -3,3 +3,5 @@ data
 analysis
 figures
 scripts/spinN_mps/ttns
+scripts/spinN_mps/log*
+scripts/TWA/log*

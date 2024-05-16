@@ -7,4 +7,4 @@
 #SBATCH --cpus-per-task=48
 #SBATCH --array=1-8
 
-julia -t 48 TWA_HP.jl ${SLURM_ARRAY_TASK_ID}
+srun julia -t 48 TWA_HP.jl ${SLURM_ARRAY_TASK_ID}
