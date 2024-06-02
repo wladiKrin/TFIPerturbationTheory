@@ -33,7 +33,8 @@ end
 
 function Ising(;L, g, J = -1, d)
   ampo = OpSum()
-  for (j1,j2) in zip(1:L, vcat(2:L, 1))
+  # for (j1,j2) in zip(1:L, vcat(2:L, 1))
+  for (j1,j2) in zip(1:L-1, 2:L)
     # ampo += (g,"X", j1) 
     ampo += (g,"S+", j1) 
     ampo += (g,"S-", j1) 
@@ -44,6 +45,8 @@ function Ising(;L, g, J = -1, d)
       end
     end
   end
+  ampo += (g,"S+", L) 
+  ampo += (g,"S-", L) 
 
   return ampo
 end
@@ -52,57 +55,57 @@ function current_sweep(; sweep)
   return sweep
 end
 
-function measure_N(; psi)
-  res = real.(collect(expect(psi, "N")))
+function measure_N(; state)
+  res = real.(collect(expect(state, "N")))
   # println("N: $(res)")
   return res
 end
-function measure_entropy(; psi)
-  pos = floor(Int,length(psi)/2)
-  psi_ = orthogonalize(psi, pos)
-  _,S,_ = svd(psi_[pos], (commonind(psi_[pos-1], psi_[pos]), filter(i->hastags(i, "Site"), inds(psi_[pos]))))
+function measure_entropy(; state)
+  pos = floor(Int,length(state)/2)
+  state_ = orthogonalize(state, pos)
+  _,S,_ = svd(state_[pos], (commonind(state_[pos-1], state_[pos]), filter(i->hastags(i, "Site"), inds(state_[pos]))))
   return mapreduce(+, 1:dim(S,1)) do i
     p = S[i,i]^2
     return -p*log(p)
   end
 end
-function measure_Nabs(; psi)
-  res = real.(collect(expect(psi, "Nabs")))
+function measure_Nabs(; state)
+  res = real.(collect(expect(state, "Nabs")))
   # println("Nabs: $(mean(res))")
   return res
 end
-function measure_N2(; psi)
-  res = real.(collect(expect(psi, "N2")))
+function measure_N2(; state)
+  res = real.(collect(expect(state, "N2")))
   # println("N2: $(mean(res))")
   return res
 end
 
-function measure_proj0(; psi)
-    return real.(collect(expect(psi, "Proj0")))
+function measure_proj0(; state)
+    return real.(collect(expect(state, "Proj0")))
 end
-function measure_proj1(; psi)
-    return real.(collect(expect(psi, "Proj1"))) .+ real.(collect(expect(psi, "Proj-1")))
+function measure_proj1(; state)
+    return real.(collect(expect(state, "Proj1"))) .+ real.(collect(expect(state, "Proj-1")))
 end
-function measure_proj2(; psi)
-    return real.(collect(expect(psi, "Proj2"))) .+ real.(collect(expect(psi, "Proj-2")))
+function measure_proj2(; state)
+    return real.(collect(expect(state, "Proj2"))) .+ real.(collect(expect(state, "Proj-2")))
 end
-function measure_proj3(; psi)
-    return real.(collect(expect(psi, "Proj3"))) .+ real.(collect(expect(psi, "Proj-3")))
+function measure_proj3(; state)
+    return real.(collect(expect(state, "Proj3"))) .+ real.(collect(expect(state, "Proj-3")))
 end
-function measure_proj4(; psi)
-    return real.(collect(expect(psi, "Proj4"))) .+ real.(collect(expect(psi, "Proj-4")))
+function measure_proj4(; state)
+    return real.(collect(expect(state, "Proj4"))) .+ real.(collect(expect(state, "Proj-4")))
 end
-function measure_proj5(; psi)
-    return real.(collect(expect(psi, "Proj5"))) .+ real.(collect(expect(psi, "Proj-5")))
+function measure_proj5(; state)
+    return real.(collect(expect(state, "Proj5"))) .+ real.(collect(expect(state, "Proj-5")))
 end
-function measure_proj6(; psi)
-    return real.(collect(expect(psi, "Proj6"))) .+ real.(collect(expect(psi, "Proj-6")))
+function measure_proj6(; state)
+    return real.(collect(expect(state, "Proj6"))) .+ real.(collect(expect(state, "Proj-6")))
 end
-function measure_proj7(; psi)
-    return real.(collect(expect(psi, "Proj7"))) .+ real.(collect(expect(psi, "Proj-7")))
+function measure_proj7(; state)
+    return real.(collect(expect(state, "Proj7"))) .+ real.(collect(expect(state, "Proj-7")))
 end
-function measure_proj8(; psi)
-    return real.(collect(expect(psi, "Proj8"))) .+ real.(collect(expect(psi, "Proj-8")))
+function measure_proj8(; state)
+    return real.(collect(expect(state, "Proj8"))) .+ real.(collect(expect(state, "Proj-8")))
 end
 
 # Ls = (8,16,20,24)
@@ -130,12 +133,12 @@ let
   H = MPO(model, s)
 
   # Make MPS
-  # psis = ["0","0","1","2","2","1","0","0"]
-  # psis = ["0","0","0","0","0","0","0","0"]
+  # states = ["0","0","1","2","2","1","0","0"]
+  # states = ["0","0","0","0","0","0","0","0"]
   psi = MPS(s, "0")
 
-  function measure_En(; psi)
-    res = real(inner(psi', H, psi))
+  function measure_En(; state)
+    res = real(inner(state', H, state))
     println("E: $(res)")
     return res
   end
@@ -165,7 +168,7 @@ let
         # -im * tmax,
         -im * dt,
         psi;
-        nsweeps = 1,
+        nsweeps = 5,
         nsite = 2,
         reverse_step=true,
         normalize=true,
@@ -174,7 +177,7 @@ let
         outputlevel=1,
         (step_observer!)=obs,
       )
-      t += dt
+      t += 5*dt
   end
 
   psi = tdvp(
@@ -211,7 +214,7 @@ let
 
   # CSV.write("../../data/obs_hardcoreBosons_mps_new_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_tmax=$(tmax).csv", df)
   savedata("../../data/obs_hardcoreBosons_mps_new_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_tmax=$(tmax)", obs)
-  # psimps = MPS(collect(vertex_data(psi)))
+  # statemps = MPS(collect(vertex_data(state)))
   h5open("./ttns/psi_hardcoreBosons_mps_new_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_tmax=$(tmax).h5", "w") do file
     write(file, "mps", psi)
   end

@@ -116,12 +116,13 @@ end
 # bondDims = (16,32)
 # gs = [-0.25,-0.5,-0.6,-0.75,-0.8,-0.85,-0.9,-1.0,-1.15,-1.25,-1.5]
 gs = [-0.5,-0.6,-0.7,-0.8,-0.9,-0.95,-1.0,-1.05,-1.1,-1.2,-1.3,-1.5,]
+gs = vcat(-0.5,collect(-0.75:-0.05:-1.5),-2.0,-3.0)
 
 let
-  N = 8# parse(Int, ARGS[1]) #length of lattice
-  D = 2#parse(Int, ARGS[2]) #length of lattice
+  N = parse(Int, ARGS[1]) #length of lattice
+  D = parse(Int, ARGS[2]) #length of lattice
   (J,h) = (-1.,-0.)
-  g = -1.5 #gs[parse(Int, ARGS[3])]
+  g = gs[parse(Int, ARGS[3])]
 
   nsweeps = 10
 
@@ -185,14 +186,16 @@ let
     )
     
     currEnergy = measure_En(; state=psi)
-    if abs(currEnergy - prevEnergy) < 1e-6
+    currEnVar = measure_EnVar(; state=psi)
+                        
+    if (abs(currEnergy - prevEnergy) < 1e-10) && (abs(currEnVar-currEnergy^2) < 1e-10)
       break
     end
     prevEnergy = currEnergy
   end
 
-  savedata("../../data/obs_hardcoreBosons_mps_GS_2site_wNoise_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxlinkdim(psi))", obs)
-  h5open("./ttns/GS_hardcoreBosons_mps_GS_2site_wNoise_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxlinkdim(psi)).h5", "w") do file
-    write(file, "mps", phi)
+  savedata("../../data/obs_hardcoreBosons_mps_GS_2site_wNoise_L=$(N)_Sz=$(D)_g=$(g)", obs)
+  h5open("./ttns/GS_hardcoreBosons_mps_GS_2site_wNoise_L=$(N)_Sz=$(D)_g=$(g).h5", "w") do file
+    write(file, "mps", psi)
   end
 end

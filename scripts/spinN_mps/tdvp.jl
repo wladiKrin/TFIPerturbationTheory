@@ -32,8 +32,8 @@ end
 
 function Ising(;L, g, J = -1, d)
   ampo = OpSum()
-  for (j1,j2) in zip(1:L, vcat(2:L, 1))
-    # ampo += (g,"XMin", j1) 
+  # for (j1,j2) in zip(1:L, vcat(2:L, 1))
+  for (j1,j2) in zip(1:L-1, 2:L)
     ampo += (g,"S+", j1) 
     ampo += (g,"S-", j1) 
 
@@ -128,12 +128,12 @@ gs = [-0.9]
 
 let
   N = parse(Int, ARGS[1]) #length of lattice
-  D = 4 #max Sz component
+  D = 8 #max Sz component
   maxDim = parse(Int, ARGS[2])
   (J,h) = (-1.,-0.)
   g = gs[parse(Int, ARGS[3])]
 
-  tmax = 50
+  tmax = 100
   dt = 0.1
 
   ## Ising model ##
@@ -209,10 +209,10 @@ let
   #   # proj8 = obs.proj8, 
   # )
 
-  # CSV.write("../../data/obs_hardcoreBosons_mps_test_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_tmax=$(tmax).csv", df)
-  savedata("../../data/obs_hardcoreBosons_mps_test_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_tmax=$(tmax)", obs)
+  # CSV.write("../../data/obs_hardcoreBosons_mps_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_tmax=$(tmax).csv", df)
+  savedata("../../data/obs_hardcoreBosons_mps_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_tmax=$(tmax)", obs)
   psimps = MPS(collect(vertex_data(psi)))
-  h5open("./ttns/psi_Buldge_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_tmax=$(tmax).h5", "w") do file
+  h5open("./ttns/psi_hardcoreBosons_mps_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_tmax=$(tmax).h5", "w") do file
     write(file, "mps", psimps)
   end
 end

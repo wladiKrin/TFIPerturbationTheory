@@ -29,14 +29,15 @@ function savedata(name::String, obs)
         end 
         file["energy"]     = obs[:,"energy"]
         # file["energy"]     = [o[1] for o in obs[:,"energy"]]
-        # file["energy_var"] = [o[2] for o in obs[:,"energy"]]
+        # file["energyVar"]  = obs[:,"energyVar"]
         file["ent"]        = obs[:,"ent"]
     end
 end
 
 function Ising(;L, g, J = -1, d)
   ampo = OpSum()
-  for (j1,j2) in zip(1:L, vcat(2:L, 1))
+  # for (j1,j2) in zip(1:L, vcat(2:L, 1))
+  for (j1,j2) in zip(1:L-1, 2:L)
     # ampo += (g,"X", j1) 
     ampo += (g,"S+", j1) 
     ampo += (g,"S-", j1) 
@@ -47,6 +48,32 @@ function Ising(;L, g, J = -1, d)
       end
     end
   end
+
+  ampo += (g,"S+", L) 
+  ampo += (g,"S-", L) 
+
+  return ampo
+end
+
+function IsingInt(;L, g, J = -1, d)
+  ampo = OpSum()
+  # for (j1,j2) in zip(1:L, vcat(2:L, 1))
+  for (j1,j2) in zip(1:L-1, 2:L)
+    # ampo += (g,"X", j1) 
+    ampo += (g,"S+", j1) 
+    ampo += (g,"S-", j1) 
+
+    ampo += (1e-1, "N", j1, "N", j2)
+
+    for s in -d:d
+      for k in -d:d
+          ampo += (-2*J*abs(s-k), "Proj$(s)", j1, "Proj$(k)", j2)
+      end
+    end
+  end
+
+  ampo += (g,"S+", L) 
+  ampo += (g,"S-", L) 
 
   return ampo
 end
@@ -71,12 +98,12 @@ function measure_entropy(; state)
 end
 function measure_Nabs(; state)
   res = real.(collect(expect(state, "Nabs")))
-  # println("Nabs: $(mean(res))")
+  println("Nabs: $(mean(res))")
   return res
 end
 function measure_N2(; state)
   res = real.(collect(expect(state, "N2")))
-  # println("N2: $(mean(res))")
+  println("N2: $(mean(res))")
   return res
 end
 
@@ -111,18 +138,18 @@ end
 # Ls = (8,16,20,24)
 # bondDims = (16,32)
 # gs = [-0.25,-0.5,-0.6,-0.75,-0.8,-0.85,-0.9,-1.0,-1.15,-1.25,-1.5]
-gs = [-0.5,-0.6,-0.75,-0.8,-0.9,] #-1.05,-1.1,-1.15]
+gs = [-0.5,-0.6,-0.7,-0.8,-0.9,-0.95,-1.0,-1.05,-1.1,-1.2,-1.3,-1.5,]
+gs = vcat(-0.5,collect(-0.75:-0.05:-1.5),-2.0,-3.0)
+gs = collect(-1.11:-0.01:-1.22)
+# gs = collect(-0.75:-0.05:-0.95)
 
 let
   N = parse(Int, ARGS[1]) #length of lattice
-  D = 8 #max Sz component
-  maxDim = parse(Int, ARGS[2])
+  D = parse(Int, ARGS[2]) #length of lattice
   (J,h) = (-1.,-0.)
   g = gs[parse(Int, ARGS[3])]
 
-  # tmax = 100
-  nsweepsStart = 1000
-  nsweeps = 1000
+  nsweeps = 10
 
   ## Ising model ##
   graph = N #named_path_graph(N)
@@ -133,12 +160,12 @@ let
   model = Ising(L=N, g=g, J = J, d=D)
   H = MPO(model, s)
 
-  # Make MPS
-  file = h5open("./ttns/GS_hardcoreBosons_mps_GS_1site_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_nsweeps=$(nsweeps).h5", "r")
-  psi = read(file, "mps", MPS)
+  modelInt = IsingInt(L=N, g=g, J = J, d=D)
+  HInt = MPO(modelInt, s)
 
-  # psi = randomMPS(s; linkdims=maxDim)
-  # psi = psi / norm(psi)
+  # Make MPS
+  psi = randomMPS(s)
+  psi = psi / norm(psi)
 
   function measure_En(; state)
     meanE = real(inner(state', H, state))
@@ -146,9 +173,16 @@ let
     return meanE
   end
 
+  function measure_EnVar(; state)
+    @time varE = real(inner(H, state, H, state))
+    println("Energy variance: $(varE)")
+    return varE
+  end
+
   obs = observer(
     "sweeps" => current_sweep, 
     "energy" => measure_En, 
+    # "energyVar" => measure_EnVar, 
     "N"      => measure_N, 
     "ent"    => measure_entropy, 
     "Nabs"   => measure_Nabs, 
@@ -164,72 +198,46 @@ let
     "proj8"  => measure_proj8,
   )
 
-  t = 0 
-  #while maxlinkdim(state) < maxDim
-  #    state = tdvp(
-  #      H,
-  #      # -im * tmax,
-  #      -im * dt,
-  #      state;
-  #      nsweeps = 1,
-  #      nsite = 2,
-  #      reverse_step=true,
-  #      normalize=true,
-  #      maxdim=maxDim,
-  #      cutoff=1e-14,
-  #      outputlevel=1,
-  #      (step_observer!)=obs,
-  #    )
-  #    t += dt
-  #end
+  prevEnergy = measure_En(; state=psi)
 
-  # phi = ITensorTDVP.tdvp(
-  #   H,
-  #   -1.0,
-  #   state;
-  #   nsweeps = nsweeps,
-  #   reverse_step=false,
-  #   nsite = 1, 
-  #   # normalize=true,
-  #   maxdim=maxDim,
-  #   cutoff=1e-10,
-  #   outputlevel=1,
-  #   (step_observer!)=obs,
-  # )
+  for maxDim in 10:10:200
+    println("=========================== bond dimension = $(maxDim) =================================")
+    if maxDim < 70
+        psi = ITensorTDVP.dmrg(
+          HInt,
+          psi;
+          nsweeps=5,
+          maxdim=maxDim,
+          cutoff=1e-10,
+          noise = 1e-3,
+          outputlevel=1,
+          (sweep_observer!)=obs,
+        )
+    end
 
-  phi = ITensorTDVP.dmrg(
-    H,
-    psi;
-    nsweeps = nsweeps,
-    nsite = 1,
-    maxdim=maxDim,
-    cutoff=1e-10,
-    outputlevel=1,
-    (sweep_observer!)=obs,
-  )
+    psi = ITensorTDVP.dmrg(
+      H,
+      psi;
+      nsweeps=10,
+      maxdim=maxDim,
+      cutoff=1e-10,
+      noise = vcat(fill(1e-3, 4), 0),#1e-1,
+      outputlevel=1,
+      (sweep_observer!)=obs,
+    )
+    
+    currEnergy = measure_En(; state=psi)
+    currEnVar = measure_EnVar(; state=psi)
+                        
+    cutoffEnd = 1e-10
+    if (abs(currEnergy - prevEnergy) < cutoffEnd) && (abs(currEnVar-currEnergy^2) < cutoffEnd)
+      break
+    end
+    prevEnergy = currEnergy
+  end
 
-  # df = DataFrame(
-  #   t     = obs.sweep, 
-  #   energy  = obs.energy, 
-  #   entropy = obs.ent, 
-  #   N     = obs.N, 
-  #   Nabs  = obs.Nabs, 
-  #   N2    = obs.N2, 
-  #   proj0 = obs.proj0, 
-  #   proj1 = obs.proj1, 
-  #   proj2 = obs.proj2, 
-  #   proj3 = obs.proj3, 
-  #   proj4 = obs.proj4, 
-  #   proj5 = obs.proj5, 
-  #   proj6 = obs.proj6, 
-  #   proj7 = obs.proj7, 
-  #   proj8 = obs.proj8, 
-  # )
-
-  #CSV.write("../../data/obs_hardcoreBosons_mps_new_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_nsweeps=$(nsweeps+nsweepsStart).csv", df)
-  savedata("../../data/obs_hardcoreBosons_mps_GS_1site_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_nsweeps=$(nsweeps+nsweepsStart)", obs)
-  #statemps = MPS(collect(vertex_data(state)))
-  h5open("./ttns/GS_hardcoreBosons_mps_GS_1site_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_nsweeps=$(nsweeps+nsweepsStart).h5", "w") do file
-    write(file, "mps", phi)
+  savedata("../../data/obs_hardcoreBosons_mps_GS_2site_wNoise_L=$(N)_Sz=$(D)_g=$(g)", obs)
+  h5open("./ttns/GS_hardcoreBosons_mps_GS_2site_wNoise_L=$(N)_Sz=$(D)_g=$(g).h5", "w") do file
+    write(file, "mps", psi)
   end
 end
