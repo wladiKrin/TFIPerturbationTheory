@@ -76,14 +76,45 @@ function F_SG(fields, params)
 
         factor = (2*S-ni)*ni
 
-        Fn = -2*g*sqrt(factor)*si
-        Fc = +(-J*(sgn(f1)+sgn(f2)) + 2*g*(S-ni)*ci/sqrt(factor)) * si
-        Fs = -(-J*(sgn(f1)+sgn(f2)) + 2*g*(S-ni)*ci/sqrt(factor)) * ci
+        # Fn = -2*g*sqrt(factor)*si
+        # Fc = +(-J*(sgn(f1)+sgn(f2)) + 2*g*(S-ni)*ci/sqrt(factor)) * si
+        # Fs = -(-J*(sgn(f1)+sgn(f2)) + 2*g*(S-ni)*ci/sqrt(factor)) * ci
+
+        Fn = -2*g*si
+        Fc = +(-J*(sgn(f1)+sgn(f2))) * si
+        Fs = -(-J*(sgn(f1)+sgn(f2))) * ci
 
         return Fn, Fc, Fs
     end
 
     return [F[i][1] for i in 1:length(n)], [F[i][2] for i in 1:length(n)], [F[i][3] for i in 1:length(n)]
+end
+
+# HP + Susskind-Glogower
+function F_SG2(fields, params)
+    n, phi = fields
+    J, g, S = params
+
+    F = map(1:length(n)) do index
+        ni = n[index]
+        phii = phi[index]
+        ni1  = index+1 > length(n) ? n[1] : n[index+1]
+        ni_1 = index-1 < 1 ? n[end] : n[index-1]
+
+        f1 = ni - ni1
+        f2 = ni - ni_1
+
+        # Fn = -2*g*sqrt(factor)*si
+        # Fc = +(-J*(sgn(f1)+sgn(f2)) + 2*g*(S-ni)*ci/sqrt(factor)) * si
+        # Fs = -(-J*(sgn(f1)+sgn(f2)) + 2*g*(S-ni)*ci/sqrt(factor)) * ci
+
+        Fn = -2*g*sin(phii)
+        Fphi = (-2*J*(sgn(f1)+sgn(f2)))
+
+        return Fn, Fphi
+    end
+
+    return [F[i][1] for i in 1:length(n)], [F[i][2] for i in 1:length(n)]
 end
 
 # Some funtion definitions
@@ -125,6 +156,12 @@ function obs_SG(fields, params)
     return S .- n
 end
 
+function obs_SG2(fields, params)
+    n,_ = fields
+    _,_,S = params
+    return S .- n
+end
+
 function analyze_data(data, params)
     _,_,S = params
     Sz = map(data) do data_t
@@ -133,9 +170,10 @@ function analyze_data(data, params)
         end
     end
 
-    meanSz = [sum([mean(s[i]) for s in Sz])/length(Sz) for i in 1:length(Sz[1])]
+    meanSz  = [sum([mean(s[i]) for s in Sz])/length(Sz) for i in 1:length(Sz[1])]
+    meanSz2 = [sum([mean(s[i].^2) for s in Sz])/length(Sz) for i in 1:length(Sz[1])]
     # absSz  = [sum([mean(abs.(s[i])) for s in Sz])/length(Sz) for i in 1:length(Sz[1])]
-    imb    = [sum([1-mean(abs.(s[i]))/S for s in Sz])/length(Sz) for i in 1:length(Sz[1])]
+    imb     = [sum([1-mean(abs.(s[i]))/S for s in Sz])/length(Sz) for i in 1:length(Sz[1])]
 
     # dw = [sum([sum([abs.(s1-s2) for (s1,s2) in zip(s, vcat(s[2:end],s[1]))]) for s in Sz])/length(Sz) for i in 1:length(Sz[1])]
 
