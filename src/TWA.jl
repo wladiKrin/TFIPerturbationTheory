@@ -1,3 +1,44 @@
+function sgn(x)
+    return x == 0 ? Int(0) : Int(x/abs(x))
+end
+
+function laguerre(x::T, N::Int) where T
+    p0, p1 = one(T), -x+1
+    N == 0 && return p0
+    for k = one(T):N-1
+        p1, p0 = ((2k+1)/(k+1) - x/(k+1))*p1 - k/(k+1)*p0, p1
+    end
+    p1
+end
+
+function get_samples(N::Int; n_samples::Int = 1e5, dx::Float64 = 1e-3)
+    fact = N
+    domain = (0,2.5)
+
+    f(x)     = 2*fact*x*exp.(-fact*x) * laguerre(2*fact*x, N)
+    f_abs(x) = abs(f(x))
+    f_abs_mean(x) = sgn(f(x)) * x * f_abs(x)
+    f_mean(x) = x * f(x)
+    
+    # f_var(x) = x^2 * f(x)
+    
+    points = first(domain):dx:last(domain)
+
+    f_points = f.(collect(points))
+    f_abs_points = abs.(f_points)
+    sum_f_abs_points = sum(f_abs_points)
+
+    cum_f_abs = cumsum(f_abs_points ./ sum_f_abs_points)
+
+    probs = rand(n_samples)
+
+    samples = [findmin(abs.(cum_f_abs .- u))[2]*dx for u in probs]
+    signs = sgn.(f.(samples))
+    prefactor = sum_f_abs_points / sum(f_points)
+
+    return samples, signs, prefactor
+end
+
 ##############################################################
 ############### Truncated Wigner Approximation ###############
 ##############################################################
@@ -166,21 +207,28 @@ function analyze_data(data, params)
     _,_,S = params
     Sz = map(data) do data_t
         return map(data_t) do d
-            return d[2:end]
+            return d[3]
+        end
+    end
+    signs = map(data) do data_t
+        return map(data_t) do d
+            return d[2]
         end
     end
 
-    meanSz  = [sum([mean(s[i]) for s in Sz])/length(Sz) for i in 1:length(Sz[1])]
-    meanSz2 = [sum([mean(s[i].^2) for s in Sz])/length(Sz) for i in 1:length(Sz[1])]
-    # absSz  = [sum([mean(abs.(s[i])) for s in Sz])/length(Sz) for i in 1:length(Sz[1])]
-    imb     = [sum([1-mean(abs.(s[i]))/S for s in Sz])/length(Sz) for i in 1:length(Sz[1])]
+    meanSz  = [sum([mean(sign[i] .* s[i]) for (s,sign) in zip(Sz,signs)])/length(Sz) for i in 1:length(Sz[1])]
+    meanSz2 = [sum([mean(sign[i] .* (s[i].^2)) for (s,sign) in zip(Sz,signs)])/length(Sz) for i in 1:length(Sz[1])]
+    absSz   = [sum([mean(sign[i] .* abs.(s[i])) for (s,sign) in zip(Sz,signs)])/length(Sz) for i in 1:length(Sz[1])]
+    # imb     = [sum([1-mean(abs.(s[i]))/S for s in Sz])/length(Sz) for i in 1:length(Sz[1])]
 
     # dw = [sum([sum([abs.(s1-s2) for (s1,s2) in zip(s, vcat(s[2:end],s[1]))]) for s in Sz])/length(Sz) for i in 1:length(Sz[1])]
 
     return DataFrame(
-        t      = [real(d[1]) for d in data[1]], 
-        meanSz = meanSz,
-        imb    = imb,
+        t       = [real(d[1]) for d in data[1]], 
+        meanSz  = meanSz,
+        meanSz2 = meanSz2,
+        absSz   = absSz,
+        # imb     = imb,
         # dw      = dw,
         # sine    = [sum([d[i][6] for d in data])/N for i in 1:length(data[1])],
         # cosine  = [sum([d[i][7] for d in data])/N for i in 1:length(data[1])],
