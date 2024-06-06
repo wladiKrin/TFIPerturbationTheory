@@ -1,10 +1,12 @@
-L = (1000,16)
-N = 10000
+L = 10 # lattice size
+# N = 50 # max spin_value
+
+# num_MC = 5000 # number of mc trajectories
+
 J = -1;
 
 dt = 1e-3
-T = 100.
+T = 10.
 
-S = L[1]/2
 mu = sqrt(S)
 sigma = 1e-1

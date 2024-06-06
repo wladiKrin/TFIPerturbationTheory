@@ -1,33 +1,47 @@
-include("/local/krinitsin/TFIPerturbationTheory/src/PertTheory.jl")
-include("./params.jl")
+path = "/local/krinitsin"
+# path = "/Users/wladi/Projects"
 
-# gs = [-0.25,-0.5,-0.75,-1.0,-1.25,-1.5,-1.75,-2.0]
-gs = [-0.25,-0.5,-0.75,-1.0,-1.25,-1.5,-1.75,-2.0]
+include(path*"/TFIPerturbationTheory/src/PertTheory.jl")
+
+L = 10 # lattice size
+
+J = -1;
+
+dt = 1e-3
+T = 10.
+
+gs      = [-0.5,-1.5]
+Ns      = [10,50,100,200]
+num_MCs = [1000,5000,10000]
+
+params = Iterators.product(gs, Ns, num_MCs)
 
 let
-    g = gs[parse(Int, ARGS[1])]
-    # g = gs[1]
-# for g in gs
+    g, N, num_MC = params[parse(Int, ARGS[1])]
+
+    S = N/2 # initial spin value
+
     params = (J,g,S)
     obs = obs_SG2
     F   = F_SG2
 
     data = []
 
-    Threads.@threads for num in 1:N
-    # for num in 1:N
-        @show num
+    # create samples
+    samples, signs, prefactor = get_samples(N; n_samples = num_MC * L)
+
+    for (sample, sign) in zip(Iterators.partition(samples, L), Iterators.partition(signs, L))
         t = 0
         dataTemp = []
 
-        n0 = fill(S, L[2])
-        phi0 = 2*pi*rand(L[2]) 
+        n0 = (S/2) * sample
+        phi0 = 2*pi*rand(L)
         fields = (n0, phi0)
 
         # Compute time evolution
         try
             while t < T
-                push!(dataTemp, [t, obs(fields, params)...])
+                push!(dataTemp, [t, sign, obs_SG2(fields, params)])
                 fields = heun_step(fields, params, F, dt)
                 # dt_new, fields = adaptive_heun_step(fields, params, F, dt, 1e-1)
                 t += dt
@@ -39,6 +53,13 @@ let
         push!(data, dataTemp)
     end
 
-    df_res = analyze_data(data, params)
-    CSV.write("../../data/TWA_SG_L=$(L[2])_Sz=$(S)_N=$(N)_g=$(g).csv", df_res)
+    # df_res = analyze_data(data, params)
+    name = path * "/TFIPerturbationTheory/data/TWA_SG_L=$(L)_Sz=$(S)_num_MC=$(num_MC)_g=$(g)"
+    h5open(name*".h5", "w") do file    
+        for (run, d) in enumerate(data)
+            file["$(run)/time"] = [dd[1] for dd in d]
+            file["$(run)/sign"] = permutedims(hcat([dd[2] for dd in d]...))
+            file["$(run)/occ"]  = permutedims(hcat([dd[2] for dd in d]...))
+        end
+    end
 end;
