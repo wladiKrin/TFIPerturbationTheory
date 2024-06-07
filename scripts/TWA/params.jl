@@ -7,6 +7,3 @@ J = -1;
 
 dt = 1e-3
 T = 10.
-
-mu = sqrt(S)
-sigma = 1e-1
