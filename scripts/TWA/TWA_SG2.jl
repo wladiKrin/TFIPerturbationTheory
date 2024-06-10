@@ -14,7 +14,7 @@ let
 
     gs      = [-0.5,-1.5]
     Ns      = [10,50,100,200]
-    num_MCs = [1000,5000,10000]
+    num_MCs = [50000,100000]
 
     params = collect(Iterators.product(gs, Ns, num_MCs))
     g, N, num_MC = params[parse(Int, ARGS[1])]
@@ -35,7 +35,7 @@ let
         t = 0.
         dataTemp = []
 
-        n0 = (S/2) * sample
+        n0 = (S/2) .* sample
         phi0 = 2*pi*rand(L)
         fields = (n0, phi0)
 

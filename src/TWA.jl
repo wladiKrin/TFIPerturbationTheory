@@ -239,7 +239,7 @@ function analyze_data(data, params)
 end
 
 function analyze_data2(path, params)
-    (g, N, num_MC) = params
+    (g, N, num_MC, L) = params
     S = N/2
 
     name = path * "/TFIPerturbationTheory/data/TWA_SG_L=$(L)_Sz=$(S)_num_MC=$(num_MC)_g=$(g)"
@@ -247,23 +247,32 @@ function analyze_data2(path, params)
     h5open(name*".h5", "r") do file    
 
         prefactor = read(file, "prefactor")[1]
+        signs = read(file, "signs")
         data = map(1:num_MC) do run
-            signs = read(file, "signs")[run,:]
             time  = read(file, "$(run)/time")
             occ   = read(file, "$(run)/occ")
-            return time, signs, occ
+            return time, occ
         end
 
-        Sz = map(data) do data_t
-            return map(1:size(data_t[3])[1]) do i
-                return data_t[3][i,:]
-            end
+        Sz = map(1:length(data[1][1])) do i 
+            return permutedims(hcat(map(data) do data_t
+                return data_t[2][i,:]
+            end...))
         end
-        signs = [d[2] for d in data]
 
-        meanSz  = [sum([mean(sign .* s[i]) for (s,sign) in zip(Sz,signs)])/length(Sz) for i in 1:length(Sz[1])]
-        meanSz2 = [sum([mean(sign .* (s[i].^2)) for (s,sign) in zip(Sz,signs)])/length(Sz) for i in 1:length(Sz[1])]
-        absSz   = [sum([mean(sign .* abs.(s[i])) for (s,sign) in zip(Sz,signs)])/length(Sz) for i in 1:length(Sz[1])]
+        # Sz = map(data) do data_t
+        #     return map(1:size(data_t[3])[1]) do i
+        #         return data_t[3][i,:]
+        #     end
+        # end
+        # signs = [d[2] for d in data]
+
+        meanSz   = [mean(vec(sz .* signs)) for sz in Sz]
+        absSz    = [mean(vec(abs.(sz) .* signs)) for sz in Sz]
+        meanSz2  = [mean(vec((sz.^2) .* signs)) for sz in Sz]
+        # meanSz  = [sum([mean(sign .* s[i]) for (s,sign) in zip(Sz,signs)])/length(Sz) for i in 1:length(Sz[1])]
+        # meanSz2 = [sum([mean(sign .* (s[i].^2)) for (s,sign) in zip(Sz,signs)])/length(Sz) for i in 1:length(Sz[1])]
+        # absSz   = [sum([mean(sign .* abs.(s[i])) for (s,sign) in zip(Sz,signs)])/length(Sz) for i in 1:length(Sz[1])]
 
         return DataFrame(
             t       = data[1][1],
