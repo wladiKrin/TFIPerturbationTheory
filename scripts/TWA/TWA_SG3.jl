@@ -1,5 +1,6 @@
 path = "/local/krinitsin"
 # path = "/Users/wladi/Projects"
+# using CairoMakie
 
 include(path*"/TFIPerturbationTheory/src/PertTheory.jl")
 
@@ -9,14 +10,14 @@ let
 
     J = -1;
 
-    dt = 1e-3
     T = 100.
 
-    gs      = [-0.5,-1.5]
+    gs      = [-0.5,-1.0,-1.5,-2.0]
     Ns      = [200]
-    num_MCs = [50000,100000, 500000]
+    num_MCs = [1000, 100_000, 500_000]
 
     params = collect(Iterators.product(gs, Ns, num_MCs))
+    # g, N, num_MC = params[1] 
     g, N, num_MC = params[parse(Int, ARGS[1])]
     @show g, N, num_MC
 
@@ -24,7 +25,7 @@ let
 
     params = (J,g,S)
     obs = obs_SG2
-    F   = F_SG2
+    F   = F_SG3
 
     data = []
 
@@ -33,34 +34,27 @@ let
     @show prefactor * mean(S .* samples .* signs)
 
     Threads.@threads for (sample, sign) in collect(zip(Iterators.partition(samples, L), Iterators.partition(signs, L)))
+    # for (sample, sign) in collect(zip(Iterators.partition(samples, L), Iterators.partition(signs, L)))
         t = 0.
         dataTemp = []
 
         n0 = S .* sample
 
-        @show S, prefactor * mean(sign .* n0)
+        # @show S, prefactor * mean(sign .* n0)
 
         phi0 = 2*pi*rand(L)
-        fields = (n0, phi0)
+        fields = vcat(n0, phi0)
+        
+        prob = ODEProblem(F, fields, (0., T), params)
+        sol = solve(prob, reltol=1e-6, abstol=1e-6, saveat=0.01)
 
-        # Compute time evolution
-        try
-            while t < T
-                push!(dataTemp, [t, prefactor * mean(sign .* (S .- fields[1])), prefactor * mean(sign .* abs.(S .- fields[1])), prefactor * mean(sign .* abs2.(S .- fields[1]))])
-                fields = heun_step(fields, params, F, dt)
-                # dt_new, fields = adaptive_heun_step(fields, params, F, dt, 1e-1)
-                t += dt
-            end
-        catch
-            @warn "Error, fields = $fields"
-            continue
-        end
-        push!(data, dataTemp)
+        push!(data, [[time, prefactor * mean(sign .* (S .- n[1:L])), prefactor * mean(sign .* abs.(S .- n[1:L])), prefactor * mean(sign .* abs2.(S .- n[1:L]))] for (time, n) in zip(sol.t, sol.u)])
     end
     println("finished run")
 
     # df_res = analyze_data(data, params)
-    name = path * "/TFIPerturbationTheory/data/TWA_SG22_L=$(L)_Sz=$(S)_num_MC=$(num_MC)_g=$(g)"
+    # @show df_res
+    name = path * "/TFIPerturbationTheory/data/TWA_SG_L=$(L)_Sz=$(S)_num_MC=$(num_MC)_g=$(g)"
 
     h5open(name*".h5", "w") do file    
 
@@ -75,7 +69,17 @@ let
         end
     end
 
-    df = analyze_data3(path, (g,N,num_MC,L))
+    df = analyze_data3(name, num_MC)
+    # fig = Figure()
+    # ax1 = Axis(fig[1, 1])
+    # ax2 = Axis(fig[2, 1])
+    # ax3 = Axis(fig[3, 1])
+    #
+    # lines!(ax1, df.t, df.meanSz, label = "meanSz")
+    # lines!(ax2, df.t, df.absSz, label = "meanSz")
+    # lines!(ax3, df.t, df.meanSz2, label = "meanSz")
+    #
+    # fig
     CSV.write(name *".csv", df)
 
     println("finished analysis")

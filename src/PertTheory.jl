@@ -4,6 +4,7 @@ using Statistics
 using SparseArrays
 using LinearAlgebra
 using KrylovKit
+using DifferentialEquations
 using CSV, DataFrames, HDF5
 
 include("./observables.jl")

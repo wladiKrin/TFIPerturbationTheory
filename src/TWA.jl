@@ -53,7 +53,6 @@ function get_samples(N::Int; n_samples::Int = 1e5, dx::Float64 = 1e-3)
     f_points      = f.(points)
     f_mean_points = f_mean.(points)
     mean_f        = sum(f_mean_points) / sum(f_points)
-    @show mean_f
 
     domain = (0,1.5)
     points = collect(first(domain):dx:last(domain))
@@ -196,6 +195,30 @@ function F_SG2(fields, params)
     return [F[i][1] for i in 1:length(n)], [F[i][2] for i in 1:length(n)]
 end
 
+# HP + Susskind-Glogower
+function F_SG3(fields, params, t)
+    n   = fields[1:div(length(fields),2)]
+    phi = fields[div(length(fields),2)+1:end]
+    J, g, S = params
+
+    F = map(1:length(n)) do index
+        ni = n[index]
+        phii = phi[index]
+        ni1  = index+1 > length(n) ? n[1] : n[index+1]
+        ni_1 = index-1 < 1 ? n[end] : n[index-1]
+
+        f1 = ni - ni1
+        f2 = ni - ni_1
+
+        Fn = -2*g*sin(phii)
+        Fphi = (-2*J*(sgn(f1)+sgn(f2)))
+
+        return Fn, Fphi
+    end
+
+    return vcat([F[i][1] for i in 1:length(n)], [F[i][2] for i in 1:length(n)])
+end
+
 # Some funtion definitions
 
 function sgn(x)
@@ -325,16 +348,14 @@ function analyze_data2(path, params)
     end
 end
 
-function analyze_data3(path, params)
-    (g, N, num_MC, L) = params
-    S = N/2
-
-    name = path * "/TFIPerturbationTheory/data/TWA_SG22_L=$(L)_Sz=$(S)_num_MC=$(num_MC)_g=$(g)"
+function analyze_data3(name, num_MC)
+    # (g, N, num_MC, L) = params
+    # S = N/2
+    #
+    # name = path * "/TFIPerturbationTheory/data/TWA_SG22_L=$(L)_Sz=$(S)_num_MC=$(num_MC)_g=$(g)"
 
     h5open(name*".h5", "r") do file    
 
-        prefactor = read(file, "prefactor")[1]
-        signs = read(file, "signs")
         data = map(1:num_MC) do run
             time      = read(file, "$(run)/time")
             meanSz    = read(file, "$(run)/meanSz")
@@ -343,30 +364,9 @@ function analyze_data3(path, params)
             return time, meanSz, absSz, meanSz2
         end
 
-        # Sz = map(1:length(data[1][1])) do i 
-        #     return permutedims(hcat(map(data) do data_t
-        #         return data_t[2][i,:]
-        #     end...))
-        # end
-        # @show size(Sz)
-        # @show size(Sz[1])
-        
-
-        # Sz = map(data) do data_t
-        #     return map(1:size(data_t[3])[1]) do i
-        #         return data_t[3][i,:]
-        #     end
-        # end
-        # signs = [d[2] for d in data]
-
         meanSz   = mean([d[2] for d in data])
         absSz    = mean([d[3] for d in data])
         meanSz2  = mean([d[4] for d in data])
-        # absSz    = [mean(vec(abs.(sz) .* signs)) for sz in Sz]
-        # meanSz2  = [mean(vec((sz.^2) .* signs)) for sz in Sz]
-        # meanSz  = [sum([mean(sign .* s[i]) for (s,sign) in zip(Sz,signs)])/length(Sz) for i in 1:length(Sz[1])]
-        # meanSz2 = [sum([mean(sign .* (s[i].^2)) for (s,sign) in zip(Sz,signs)])/length(Sz) for i in 1:length(Sz[1])]
-        # absSz   = [sum([mean(sign .* abs.(s[i])) for (s,sign) in zip(Sz,signs)])/length(Sz) for i in 1:length(Sz[1])]
 
         return DataFrame(
             t       = data[1][1],
