@@ -5,7 +5,7 @@
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=48
-#SBATCH --array=1-24
+#SBATCH --array=1-16
 
 # srun julia -t 48 TWA_SG2.jl ${SLURM_ARRAY_TASK_ID}
 srun julia -t 48 TWA_SG_analysis.jl ${SLURM_ARRAY_TASK_ID}

@@ -10,11 +10,11 @@ let
     J = -1;
 
     dt = 1e-3
-    T = 10.
+    T = 100.
 
     gs      = [-0.5,-1.5]
-    Ns      = [10,50,100,200]
-    num_MCs = [5000,10000]
+    Ns      = [200]
+    num_MCs = [50000,100000, 500000]
 
     params = collect(Iterators.product(gs, Ns, num_MCs))
     g, N, num_MC = params[parse(Int, ARGS[1])]
@@ -30,22 +30,23 @@ let
 
     # create samples
     samples, signs, prefactor = get_samples(N; n_samples = num_MC * L)
-    @show prefactor * mean(S/2 .* samples .* signs)
+    @show prefactor * mean(S .* samples .* signs)
 
     Threads.@threads for (sample, sign) in collect(zip(Iterators.partition(samples, L), Iterators.partition(signs, L)))
         t = 0.
         dataTemp = []
 
-        n0 = (S/2) .* sample
+        n0 = S .* sample
 
-        @show prefactor * mean(S .- sign .* n0)
+        @show S, prefactor * mean(sign .* n0)
+
         phi0 = 2*pi*rand(L)
         fields = (n0, phi0)
 
         # Compute time evolution
         try
             while t < T
-                push!(dataTemp, [t, S .- fields[1]])
+                push!(dataTemp, [t, prefactor * mean(sign .* (S .- fields[1])), prefactor * mean(sign .* abs.(S .- fields[1])), prefactor * mean(sign .* abs2.(S .- fields[1]))])
                 fields = heun_step(fields, params, F, dt)
                 # dt_new, fields = adaptive_heun_step(fields, params, F, dt, 1e-1)
                 t += dt
@@ -56,9 +57,10 @@ let
         end
         push!(data, dataTemp)
     end
+    println("finished run")
 
     # df_res = analyze_data(data, params)
-    name = path * "/TFIPerturbationTheory/data/TWA_SG_L=$(L)_Sz=$(S)_num_MC=$(num_MC)_g=$(g)"
+    name = path * "/TFIPerturbationTheory/data/TWA_SG22_L=$(L)_Sz=$(S)_num_MC=$(num_MC)_g=$(g)"
 
     h5open(name*".h5", "w") do file    
 
@@ -66,9 +68,15 @@ let
         file["signs"] = permutedims(hcat(collect(Iterators.partition(signs, L))...))
 
         for (run, d) in enumerate(data)
-            file["$(run)/time"] = [dd[1] for dd in d]
-            file["$(run)/occ"]  = permutedims(hcat([dd[2] for dd in d]...))
+            file["$(run)/time"]    = [dd[1] for dd in d]
+            file["$(run)/meanSz"]  = [dd[2] for dd in d]
+            file["$(run)/absSz"]   = [dd[3] for dd in d]
+            file["$(run)/meanSz2"] = [dd[4] for dd in d]
         end
     end
-    println("finished")
+
+    df = analyze_data3(path, (g,N,num_MC,L))
+    CSV.write(name *".csv", df)
+
+    println("finished analysis")
 end;

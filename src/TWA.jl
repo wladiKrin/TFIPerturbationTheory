@@ -11,30 +11,68 @@ function laguerre(x::T, N::Int) where T
     p1
 end
 
+#   function get_samples(N::Int; n_samples::Int = 1e5, dx::Float64 = 1e-3)
+#       fact = N
+#       domain = (0,2.5)
+#
+#       f(x)     = 2*fact*x*exp.(-fact*x) * laguerre(2*fact*x, N)
+#       f_abs(x) = abs(f(x))
+#       f_abs_mean(x) = sgn(f(x)) * x * f_abs(x)
+#       f_mean(x) = x * f(x)
+#       
+#       # f_var(x) = x^2 * f(x)
+#       
+#       points = first(domain):dx:last(domain)
+#
+#       f_points = f.(collect(points))
+#       f_abs_points = abs.(f_points)
+#       sum_f_abs_points = sum(f_abs_points)
+#
+#       cum_f_abs = cumsum(f_abs_points ./ sum_f_abs_points)
+#
+#       probs = rand(n_samples)
+#
+#       samples = [findmin(abs.(cum_f_abs .- u))[2]*dx for u in probs]
+#       signs = sgn.(f.(samples))
+#       prefactor = sum_f_abs_points / sum(f_points)
+#
+#       return samples, signs, prefactor
+#   end
+
 function get_samples(N::Int; n_samples::Int = 1e5, dx::Float64 = 1e-3)
     fact = N
-    domain = (0,2.5)
 
     f(x)     = 2*fact*x*exp.(-fact*x) * laguerre(2*fact*x, N)
-    f_abs(x) = abs(f(x))
-    f_abs_mean(x) = sgn(f(x)) * x * f_abs(x)
     f_mean(x) = x * f(x)
+    # f_abs(x) = abs(f(x))
+    # f_abs_mean(x) = sgn(f(x)) * x * f_abs(x)
     
-    # f_var(x) = x^2 * f(x)
-    
-    points = first(domain):dx:last(domain)
+    domain = (0,2.5)
+    points = collect(first(domain):dx:last(domain))
 
-    f_points = f.(collect(points))
-    f_abs_points = abs.(f_points)
-    sum_f_abs_points = sum(f_abs_points)
+    f_points      = f.(points)
+    f_mean_points = f_mean.(points)
+    mean_f        = sum(f_mean_points) / sum(f_points)
+    @show mean_f
 
-    cum_f_abs = cumsum(f_abs_points ./ sum_f_abs_points)
+    domain = (0,1.5)
+    points = collect(first(domain):dx:last(domain))
+
+    g(x)     = f(x * mean_f)
+    g_abs(x) = abs(g(x))
+    g_abs_mean(x) = sgn(g(x)) * x * g_abs(x)
+
+    g_points      = g.(points)
+    g_abs_points = abs.(g_points)
+    sum_g_abs_points = sum(g_abs_points)
+
+    cum_g_abs = cumsum(g_abs_points ./ sum_g_abs_points)
 
     probs = rand(n_samples)
 
-    samples = [findmin(abs.(cum_f_abs .- u))[2]*dx for u in probs]
-    signs = sgn.(f.(samples))
-    prefactor = sum_f_abs_points / sum(f_points)
+    samples = [findmin(abs.(cum_g_abs .- u))[2]*dx for u in probs]
+    signs = sgn.(g.(samples))
+    prefactor = sum_g_abs_points / sum(g_points)
 
     return samples, signs, prefactor
 end
@@ -253,12 +291,16 @@ function analyze_data2(path, params)
             occ   = read(file, "$(run)/occ")
             return time, occ
         end
+        @show size(data[1][2])
 
         Sz = map(1:length(data[1][1])) do i 
             return permutedims(hcat(map(data) do data_t
                 return data_t[2][i,:]
             end...))
         end
+        @show size(Sz)
+        @show size(Sz[1])
+        
 
         # Sz = map(data) do data_t
         #     return map(1:size(data_t[3])[1]) do i
@@ -279,6 +321,58 @@ function analyze_data2(path, params)
             meanSz  = prefactor * meanSz,
             meanSz2 = prefactor * meanSz2,
             absSz   = prefactor * absSz,
+        );
+    end
+end
+
+function analyze_data3(path, params)
+    (g, N, num_MC, L) = params
+    S = N/2
+
+    name = path * "/TFIPerturbationTheory/data/TWA_SG22_L=$(L)_Sz=$(S)_num_MC=$(num_MC)_g=$(g)"
+
+    h5open(name*".h5", "r") do file    
+
+        prefactor = read(file, "prefactor")[1]
+        signs = read(file, "signs")
+        data = map(1:num_MC) do run
+            time      = read(file, "$(run)/time")
+            meanSz    = read(file, "$(run)/meanSz")
+            absSz     = read(file, "$(run)/absSz")
+            meanSz2   = read(file, "$(run)/meanSz2")
+            return time, meanSz, absSz, meanSz2
+        end
+
+        # Sz = map(1:length(data[1][1])) do i 
+        #     return permutedims(hcat(map(data) do data_t
+        #         return data_t[2][i,:]
+        #     end...))
+        # end
+        # @show size(Sz)
+        # @show size(Sz[1])
+        
+
+        # Sz = map(data) do data_t
+        #     return map(1:size(data_t[3])[1]) do i
+        #         return data_t[3][i,:]
+        #     end
+        # end
+        # signs = [d[2] for d in data]
+
+        meanSz   = mean([d[2] for d in data])
+        absSz    = mean([d[3] for d in data])
+        meanSz2  = mean([d[4] for d in data])
+        # absSz    = [mean(vec(abs.(sz) .* signs)) for sz in Sz]
+        # meanSz2  = [mean(vec((sz.^2) .* signs)) for sz in Sz]
+        # meanSz  = [sum([mean(sign .* s[i]) for (s,sign) in zip(Sz,signs)])/length(Sz) for i in 1:length(Sz[1])]
+        # meanSz2 = [sum([mean(sign .* (s[i].^2)) for (s,sign) in zip(Sz,signs)])/length(Sz) for i in 1:length(Sz[1])]
+        # absSz   = [sum([mean(sign .* abs.(s[i])) for (s,sign) in zip(Sz,signs)])/length(Sz) for i in 1:length(Sz[1])]
+
+        return DataFrame(
+            t       = data[1][1],
+            meanSz  = meanSz,
+            meanSz2 = meanSz2,
+            absSz   = absSz,
         );
     end
 end
