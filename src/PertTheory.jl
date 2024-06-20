@@ -1,4 +1,5 @@
 using Pkg; Pkg.activate("/local/krinitsin/TFIPerturbationTheory/")
+Pkg.instantiate()
 # using Pkg; Pkg.activate("/Users/wladi/Projects/TFIPerturbationTheory/")
 using Statistics
 using SparseArrays
@@ -6,6 +7,7 @@ using LinearAlgebra
 using KrylovKit
 using DifferentialEquations
 using CSV, DataFrames, HDF5
+using Integrals
 
 include("./observables.jl")
 

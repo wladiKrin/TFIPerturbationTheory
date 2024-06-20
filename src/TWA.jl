@@ -77,36 +77,37 @@ function get_samples(N::Int; n_samples::Int = 1e5, dx::Float64 = 1e-3)
 end
 
 function get_samples2(N::Int; n_samples::Int = 1e5, dx::Float64 = 1e-3)
-    f(x)     = x*exp.(-x^2) * laguerre(2*x^2, N)
-    f_mean(x) = x * f(x)
-    # f_abs(x) = abs(f(x))
-    # f_abs_mean(x) = sgn(f(x)) * x * f_abs(x)
-    
-    domain = (0,N)
-    points = collect(first(domain):dx:last(domain))
 
-    # f_points      = f.(points)
-    # f_mean_points = f_mean.(points)
-    mean_f        = 1 #sum(f_mean_points) / sum(f_points)
+    f(x,N)      = x*exp.(-x^2) * laguerre(2*x^2, N)
+    f_abs(x, N) = abs(f(x, N))
 
-    domain = (0,N)
-    points = collect(first(domain):dx:last(domain))
+    # points = first(domain):dx:last(domain)
+    # f_points = f.(collect(points))
+    # f_abs_points = abs.(f_points)
+    # sum_f_abs_points = sum(f_abs_points)
 
-    g(x)     = f(x * mean_f)
-    g_abs(x) = abs(g(x))
-    g_abs_mean(x) = sgn(g(x)) * x * g_abs(x)
+    domain = (0, 2*sqrt(2*N))
+    prob_f_mean = IntegralProblem((x,n) -> x*f(x,n), domain, N)
+    f_mean = solve(prob_f_mean, HCubatureJL(), reltol = 1e-3, abstol = 1e-3).u
 
-    g_points      = g.(points)
-    g_abs_points = abs.(g_points)
-    sum_g_abs_points = sum(g_abs_points)
+    # prob_f_var = IntegralProblem((x,n) -> x^2*f(x,n), domain, N)
+    # f_var = solve(prob_f_var, HCubatureJL(), reltol = 1e-3, abstol = 1e-3).u
 
-    cum_g_abs = cumsum(g_abs_points ./ sum_g_abs_points)
+    prob_f = IntegralProblem(f, domain, N)
+    int_f = solve(prob_f, HCubatureJL(), reltol = 1e-3, abstol = 1e-3).u
+
+    prob_f_abs = IntegralProblem(f_abs, domain, N)
+    int_f_abs = solve(prob_f_abs, HCubatureJL(), reltol = 1e-3, abstol = 1e-3).u
+
+    points = 0:dx:2*f_mean/int_f
+    f_abs_points = f_abs.(collect(points), N)
+    cum_f_abs = cumsum((dx * f_abs_points) ./ int_f_abs)
 
     probs = rand(n_samples)
 
-    samples = [findmin(abs.(cum_g_abs .- u))[2]*dx for u in probs]
-    signs = sgn.(g.(samples))
-    prefactor = sum_g_abs_points / sum(g_points)
+    samples = [findmin(abs.(cum_f_abs .- u))[2]*dx for u in probs]
+    signs = sgn.(f.(samples,N))
+    prefactor = int_f_abs / int_f
 
     return samples, signs, prefactor
 end
