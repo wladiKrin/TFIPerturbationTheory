@@ -47,14 +47,49 @@ function get_samples(N::Int; n_samples::Int = 1e5, dx::Float64 = 1e-3)
     # f_abs(x) = abs(f(x))
     # f_abs_mean(x) = sgn(f(x)) * x * f_abs(x)
     
-    domain = (0,2.5)
+    domain = (0,5.)
     points = collect(first(domain):dx:last(domain))
 
     f_points      = f.(points)
     f_mean_points = f_mean.(points)
     mean_f        = sum(f_mean_points) / sum(f_points)
 
-    domain = (0,1.5)
+    domain = (0,5.)
+    points = collect(first(domain):dx:last(domain))
+
+    g(x)     = f(x * mean_f)
+    g_abs(x) = abs(g(x))
+    g_abs_mean(x) = sgn(g(x)) * x * g_abs(x)
+
+    g_points      = g.(points)
+    g_abs_points = abs.(g_points)
+    sum_g_abs_points = sum(g_abs_points)
+
+    cum_g_abs = cumsum(g_abs_points ./ sum_g_abs_points)
+
+    probs = rand(n_samples)
+
+    samples = [findmin(abs.(cum_g_abs .- u))[2]*dx for u in probs]
+    signs = sgn.(g.(samples))
+    prefactor = sum_g_abs_points / sum(g_points)
+
+    return samples, signs, prefactor
+end
+
+function get_samples2(N::Int; n_samples::Int = 1e5, dx::Float64 = 1e-3)
+    f(x)     = x*exp.(-x^2) * laguerre(2*x^2, N)
+    f_mean(x) = x * f(x)
+    # f_abs(x) = abs(f(x))
+    # f_abs_mean(x) = sgn(f(x)) * x * f_abs(x)
+    
+    domain = (0,N)
+    points = collect(first(domain):dx:last(domain))
+
+    # f_points      = f.(points)
+    # f_mean_points = f_mean.(points)
+    mean_f        = 1 #sum(f_mean_points) / sum(f_points)
+
+    domain = (0,N)
     points = collect(first(domain):dx:last(domain))
 
     g(x)     = f(x * mean_f)
@@ -211,7 +246,7 @@ function F_SG3(fields, params, t)
         f2 = ni - ni_1
 
         Fn = -2*g*sin(phii)
-        Fphi = (-2*J*(sgn(f1)+sgn(f2)))
+        Fphi = 2*J*(sgn(f1)+sgn(f2))
 
         return Fn, Fphi
     end

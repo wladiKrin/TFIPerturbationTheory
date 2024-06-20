@@ -14,53 +14,44 @@ let
 
     gs      = [-0.5,-1.0,-1.5,-2.0]
     Ns      = [200]
-    num_MCs = [1000, 100_000, 500_000]
+    num_MCs = [100_000]
 
     params = collect(Iterators.product(gs, Ns, num_MCs))
     # g, N, num_MC = params[1] 
     g, N, num_MC = params[parse(Int, ARGS[1])]
     @show g, N, num_MC
 
-    S = N/2 # initial spin value
+    S = N # initial spin value
 
     params = (J,g,S)
     obs = obs_SG2
     F   = F_SG3
 
-    data = []
+    data = [[Vector{Float64}(undef, 10001) for _ in 1:4] for _ in 1:num_MC]
 
-    # create samples
-    samples, signs, prefactor = get_samples(N; n_samples = num_MC * L)
-    @show prefactor * mean(S .* samples .* signs)
-
-    Threads.@threads for (sample, sign) in collect(zip(Iterators.partition(samples, L), Iterators.partition(signs, L)))
-    # for (sample, sign) in collect(zip(Iterators.partition(samples, L), Iterators.partition(signs, L)))
+    Threads.@threads for i in collect(1:num_MC)
         t = 0.
         dataTemp = []
 
-        n0 = S .* sample
+        n0 = S .+ randn(L) #fill(S, L)
 
-        # @show S, prefactor * mean(sign .* n0)
-
-        phi0 = 2*pi*rand(L)
+        phi0 = 2*pi*rand(L) .- pi # fill(0., L) #
         fields = vcat(n0, phi0)
         
         prob = ODEProblem(F, fields, (0., T), params)
         sol = solve(prob, reltol=1e-6, abstol=1e-6, saveat=0.01)
+        @show length(sol.t)
 
-        push!(data, [[time, prefactor * mean(sign .* (S .- n[1:L])), prefactor * mean(sign .* abs.(S .- n[1:L])), prefactor * mean(sign .* abs2.(S .- n[1:L]))] for (time, n) in zip(sol.t, sol.u)])
+        data[i] = [[time, mean(S .- n[1:L]), mean(abs.(S .- n[1:L])), mean(abs2.(S .- n[1:L]))] for (time, n) in zip(sol.t, sol.u)]
     end
+    sleep(30)
     println("finished run")
 
     # df_res = analyze_data(data, params)
     # @show df_res
-    name = path * "/TFIPerturbationTheory/data/TWA_SG_L=$(L)_Sz=$(S)_num_MC=$(num_MC)_g=$(g)"
+    name = path * "/TFIPerturbationTheory/data/TWA_SG_fockStateVar_L=$(L)_Sz=$(S)_num_MC=$(num_MC)_g=$(g)"
 
     h5open(name*".h5", "w") do file    
-
-        file["prefactor"] = [prefactor]
-        file["signs"] = permutedims(hcat(collect(Iterators.partition(signs, L))...))
-
         for (run, d) in enumerate(data)
             file["$(run)/time"]    = [dd[1] for dd in d]
             file["$(run)/meanSz"]  = [dd[2] for dd in d]

@@ -114,35 +114,46 @@ end
 gs = [-0.25,-0.5,-0.75,-1.,-1.25,-1.5,-1.75,-2.0]
 
 let
-  N = parse(Int, ARGS[1]) #length of lattice
-  D = 8 #max Sz component
-  maxDim = parse(Int, ARGS[2])
   (J,h) = (-1.,-0.)
+  N = parse(Int, ARGS[1]) #length of lattice
+  maxDim = parse(Int, ARGS[2])
   g = gs[parse(Int, ARGS[3])]
+  D = parse(Int, ARGS[4]) #max Sz component
 
   tmax = 100
   dt = 0.1
 
-  ## Ising model ##
-  graph = N #named_path_graph(N)
-
-  s = siteinds("SpinN", graph; nz = D) #, conserve_qns=true)
+  s = siteinds("SpinN", N; nz = D) #, conserve_qns=true)
   
   # Model MPO
   model = Ising(L=N, g=g, J = J, d=D)
   H = MPO(model, s)
 
   # Make MPS
-  # states = ["0","0","1","2","2","1","0","0"]
-  # states = ["0","0","0","0","0","0","0","0"]
-  psi = MPS(s, "0")
+  # psi = MPS(s, "0")
+  psi= randomMPS(s, "0"; linkdims=maxDim)
+  for (i,v) in enumerate(psi)
+      if i == 1
+          mat = fill(0, size(array(psi[i])))
+          mat[1,D+1] = 1
+          psi[i] = ITensor(mat, inds(psi[i]))
+      elseif i == N
+          mat = fill(0, size(array(psi[i])))
+          mat[D+1,1] = 1
+          psi[i] = ITensor(mat, inds(psi[i]))
+      else i == N
+          mat = fill(0, size(array(psi[i])))
+          mat[D+1,1,1] = 1
+          psi[i] = ITensor(mat, inds(psi[i]))
+      end
+  end
 
   function measure_En(; state)
     res = real(inner(state', H, state))
     println("E: $(res)")
     return res
   end
-  
+
   obs = observer(
     "sweep" => current_sweep, 
     "energy" => measure_En, 
@@ -162,27 +173,27 @@ let
   )
 
   t = 0 
-  while maxlinkdim(psi) < maxDim
-      psi = tdvp(
-        H,
-        # -im * tmax,
-        -im * dt,
-        psi;
-        nsweeps = 5,
-        nsite = 2,
-        reverse_step=true,
-        normalize=true,
-        maxdim=maxDim,
-        cutoff=1e-14,
-        outputlevel=1,
-        (step_observer!)=obs,
-      )
-      t += 5*dt
-  end
+  # while maxlinkdim(psi) < maxDim
+  #     psi = tdvp(
+  #       H,
+  #       # -im * tmax,
+  #       -im * dt,
+  #       psi;
+  #       nsweeps = 5,
+  #       nsite = 2,
+  #       reverse_step=true,
+  #       normalize=true,
+  #       maxdim=maxDim,
+  #       cutoff=1e-14,
+  #       outputlevel=1,
+  #       (step_observer!)=obs,
+  #     )
+  #     t += 5*dt
+  # end
 
   psi = tdvp(
     H,
-    -im * dt,
+    -im * tmax,
     psi;
     nsweeps = floor(Int, (tmax-t)/dt),
     nsite = 1,
@@ -194,28 +205,10 @@ let
     (step_observer!)=obs,
   )
 
-  df = DataFrame(
-    t     = obs.sweep .* dt, 
-    energy    = obs.energy, 
-    entropy  = obs.ent, 
-    N     = obs.N, 
-    Nabs  = obs.Nabs, 
-    N2    = obs.N2, 
-    proj0 = obs.proj0, 
-    proj1 = obs.proj1, 
-    proj2 = obs.proj2, 
-    proj3 = obs.proj3, 
-    proj4 = obs.proj4, 
-    proj5 = obs.proj5, 
-    proj6 = obs.proj6, 
-    proj7 = obs.proj7, 
-    proj8 = obs.proj8, 
-  )
-
   # CSV.write("../../data/obs_hardcoreBosons_mps_new_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_tmax=$(tmax).csv", df)
-  savedata("../../data/obs_hardcoreBosons_mps_new_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_tmax=$(tmax)", obs)
+  savedata("../../data/obs_hardcoreBosons_mps_nonPeriodic_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_tmax=$(tmax)", obs)
   # statemps = MPS(collect(vertex_data(state)))
-  h5open("./ttns/psi_hardcoreBosons_mps_new_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_tmax=$(tmax).h5", "w") do file
+  h5open("./ttns/psi_hardcoreBosons_mps_nonPeriodic_L=$(N)_Sz=$(D)_g=$(g)_bondDim=$(maxDim)_tmax=$(tmax).h5", "w") do file
     write(file, "mps", psi)
   end
 end
